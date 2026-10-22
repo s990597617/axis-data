@@ -1,4 +1,65 @@
-/* 单根容器：CRUD 列表 */
 .source-page {
   height: 100%;
+}
+
+.dh-source-form-drawer {
+  .axis-crud-wizard__panel .n-radio-group {
+    width: 100%;
+  }
+
+  .axis-crud-wizard__panel .n-radio-group > .n-space {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px !important;
+    width: 100%;
+  }
+
+  .axis-crud-wizard__panel .n-radio {
+    display: flex;
+    align-items: center;
+    min-height: 56px;
+    margin: 0 !important;
+    padding: 14px 16px;
+    border: 1px solid color-mix(in srgb, var(--axis-border-color) 85%, transparent);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--axis-bg-color) 65%, var(--axis-card-color));
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease,
+      background 0.15s ease;
+  }
+
+  .axis-crud-wizard__panel .n-radio:hover {
+    border-color: color-mix(in srgb, var(--axis-primary-color) 45%, var(--axis-border-color));
+  }
+
+  .axis-crud-wizard__panel .n-radio.n-radio--checked,
+  .axis-crud-wizard__panel .n-radio.n-radio--focus {
+    border-color: var(--axis-primary-color);
+    background: color-mix(in srgb, var(--axis-primary-color) 8%, var(--axis-card-color));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--axis-primary-color) 14%, transparent);
+  }
+
+  .axis-crud-wizard__panel .n-radio .n-radio__label {
+    font-size: 14px;
+    font-weight: 600;
+  }
+}
+
+
+.dh-source-form-drawer {
+  .axis-crud-wizard__panel {
+    .axis-form-section__header,
+    .axis-form__section-header {
+      display: none;
+    }
+
+    .axis-form-section,
+    .axis-form__section {
+      padding: 0;
+      border: none;
+      background: transparent;
+      box-shadow: none;
+    }
+  }
 }

@@ -17,5 +17,11 @@
 </template>
 
 <style scoped lang="scss">
+  .source-page {
+    height: 100%;
+  }
+</style>
+
+<style lang="scss">
   @use './styles/index.scss';
 </style>

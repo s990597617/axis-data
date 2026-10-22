@@ -29,7 +29,7 @@ import { tryRequest } from '@/shared/http'
 import { message } from '@/shared/utils/message'
 
 const sourceTypeOptions: AxisFormOption[] = [
-  { label: 'PostgreSQL 常用', value: 2 },
+  { label: 'PostgreSQL', value: 2 },
   { label: 'MySQL', value: 3 },
   { label: 'SQL Server', value: 1 },
   { label: 'HTTP API', value: 4 }
@@ -286,7 +286,8 @@ export function useSourcePage() {
     permissions: dataHubPermissionCodes.source,
     columns,
     formPresentation: 'drawer',
-    formWidth: 560,
+    formWidth: 760,
+    formExtraClass: 'dh-source-form-drawer',
     formSubtitle: ({ editing, model }) =>
       editing
         ? `编辑「${String((model as Record<string, unknown>).name || '-')}」`

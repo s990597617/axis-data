@@ -57,6 +57,9 @@
 
   const formSteps = computed(() => props.resource.formSteps ?? [])
   const hasWizard = computed(() => formSteps.value.length > 0)
+  const isDrawerWizard = computed(
+    () => hasWizard.value && (props.resource.formPresentation ?? 'modal') === 'drawer'
+  )
   const isLastWizardStep = computed(
     () => !hasWizard.value || wizardStepIndex.value >= formSteps.value.length - 1
   )
@@ -393,35 +396,60 @@
       :subtitle="formSubtitle"
       icon="ant-design:form-outlined"
       :width="resource.formWidth ?? 760"
+      :extra-class="resource.formExtraClass ?? ''"
       :confirm-loading="submitting"
       confirm-text="保存"
       :show-confirm="!hasWizard"
       :mask-closable="!submitting"
       @confirm="handleSubmit"
     >
-      <div v-if="hasWizard" class="axis-crud-wizard">
-        <n-steps
-          class="axis-crud-wizard__steps"
-          size="small"
-          :current="wizardStepIndex + 1"
-          :status="submitting ? 'wait' : 'process'"
-        >
-          <n-step
-            v-for="(step, index) in formSteps"
-            :key="step.key"
-            :title="step.title"
-            :status="
-              index < wizardStepIndex ? 'finish' : index === wizardStepIndex ? 'process' : 'wait'
-            "
-          />
-        </n-steps>
-        <div class="axis-crud-wizard__meta">
-          第 {{ wizardStepIndex + 1 }}/{{ formSteps.length }} 步
-          <template v-if="wizardCurrentStep"> · {{ wizardCurrentStep.title }}</template>
+      <div v-if="hasWizard" class="axis-crud-wizard" :class="{ 'axis-crud-wizard--split': isDrawerWizard }">
+        <aside v-if="isDrawerWizard" class="axis-crud-wizard__rail">
+          <div class="axis-crud-wizard__rail-title">配置步骤</div>
+          <n-steps class="axis-crud-wizard__steps" vertical size="small" :current="wizardStepIndex + 1">
+            <n-step
+              v-for="(step, index) in formSteps"
+              :key="step.key"
+              :title="step.title"
+              :status="index < wizardStepIndex ? 'finish' : index === wizardStepIndex ? 'process' : 'wait'"
+            />
+          </n-steps>
+        </aside>
+        <div v-else class="axis-crud-wizard__top">
+          <n-steps class="axis-crud-wizard__steps" size="small" :current="wizardStepIndex + 1">
+            <n-step
+              v-for="(step, index) in formSteps"
+              :key="step.key"
+              :title="step.title"
+              :status="index < wizardStepIndex ? 'finish' : index === wizardStepIndex ? 'process' : 'wait'"
+            />
+          </n-steps>
+        </div>
+        <div class="axis-crud-wizard__panel">
+          <div class="axis-crud-wizard__panel-head">
+            <div class="axis-crud-wizard__panel-kicker">
+              步骤 {{ wizardStepIndex + 1 }} / {{ formSteps.length }}
+            </div>
+            <div class="axis-crud-wizard__panel-title">{{ wizardCurrentStep?.title }}</div>
+          </div>
+          <AxisForm
+            ref="formRef"
+            :model="form"
+            :schemas="formSchemas"
+            :sections="formSections"
+            :columns="2"
+            :disabled="submitting"
+            :before-placement="resource.formBeforePlacement ?? 'block'"
+          >
+            <template v-for="(_, name) in $slots" :key="name" #[name]="slotData">
+              <slot :name="name" v-bind="{ ...(slotData || {}), editing }" />
+            </template>
+          </AxisForm>
         </div>
       </div>
 
       <AxisForm
+        v-else
         ref="formRef"
         :model="form"
         :schemas="formSchemas"
@@ -469,20 +497,70 @@
   @use './styles/index.scss';
 
   .axis-crud-wizard {
-    margin-bottom: 12px;
-    padding: 12px 14px 10px;
-    border: 1px solid color-mix(in srgb, var(--axis-border-color) 80%, transparent);
-    border-radius: var(--axis-border-radius, 6px);
-    background: var(--axis-card-color);
-
-    &__steps {
-      margin-bottom: 8px;
+    &--split {
+      display: flex;
+      gap: 20px;
+      align-items: stretch;
+      min-height: min(70vh, 640px);
     }
 
-    &__meta {
+    &__rail {
+      flex: 0 0 152px;
+      padding: 16px 14px;
+      border: 1px solid color-mix(in srgb, var(--axis-border-color) 75%, transparent);
+      border-radius: 10px;
+      background: var(--axis-card-color);
+    }
+
+    &__rail-title {
+      margin-bottom: 14px;
+      color: var(--axis-text-color-3);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    &__top {
+      margin-bottom: 16px;
+      padding: 14px 16px;
+      border: 1px solid color-mix(in srgb, var(--axis-border-color) 80%, transparent);
+      border-radius: 10px;
+      background: var(--axis-card-color);
+    }
+
+    &__panel {
+      flex: 1;
+      min-width: 0;
+      padding: 18px 20px 20px;
+      border: 1px solid color-mix(in srgb, var(--axis-border-color) 75%, transparent);
+      border-radius: 10px;
+      background: var(--axis-card-color);
+    }
+
+    &__panel-head {
+      margin-bottom: 18px;
+      padding-bottom: 14px;
+      border-bottom: 1px dashed color-mix(in srgb, var(--axis-border-color) 85%, transparent);
+    }
+
+    &__panel-kicker {
       color: var(--axis-text-color-3);
       font-size: 12px;
       line-height: 18px;
+    }
+
+    &__panel-title {
+      margin-top: 4px;
+      color: var(--axis-text-color-1);
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+
+    &__steps {
+      :deep(.n-step-content) {
+        min-height: 44px;
+      }
     }
   }
 </style>

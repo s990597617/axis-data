@@ -75,6 +75,8 @@ export interface AxisCrudResource<Row extends AxisCrudRow = AxisCrudRow> {
   /** 新增/编辑弹窗宽度；默认 760。 */
   formWidth?: number | string
   /** 表单呈现：modal（默认）或 drawer。 */
+  /** Passed to FormDialog extraClass for page-specific drawer polish. */
+  formExtraClass?: string
   formPresentation?: 'modal' | 'drawer'
   /**
    * 分步向导：有值时同一时间只展示与当前步骤 key 匹配的分区。
