@@ -1,0 +1,7 @@
+/* tooltip 传送到 body，需非 scoped */
+.cache-group-panel__tooltip {
+  max-width: min(72vw, 420px);
+  white-space: pre-wrap;
+  word-break: break-all;
+  line-height: 1.5;
+}

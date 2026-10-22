@@ -1,0 +1,87 @@
+/* 物料维护：左侧分类树 + 右侧列表 */
+.material-page {
+  display: flex;
+  gap: 8px;
+  height: 100%;
+  min-height: 0;
+
+  &__tree-panel {
+    display: flex;
+    width: 240px;
+    flex-shrink: 0;
+    flex-direction: column;
+    min-height: 0;
+    padding: 14px;
+    overflow: hidden;
+    border: 1px solid var(--axis-border-color);
+    border-radius: var(--axis-border-radius, 6px);
+    background: var(--axis-card-color);
+
+    :deep(.n-tree) {
+      font-size: 13px;
+
+      .n-tree-node {
+        padding: 2px 0;
+      }
+
+      .n-tree-node-content__text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .n-tree-node--selected > .n-tree-node-content .n-tree-node-content__text {
+        color: var(--axis-primary-color);
+        font-weight: 600;
+      }
+
+      .n-tree-node-switcher {
+        width: 20px;
+      }
+    }
+  }
+
+  &__tree-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--axis-border-color);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--axis-text-color-1);
+  }
+
+  &__tree-icon {
+    color: var(--axis-primary-color);
+    font-size: 16px;
+  }
+
+  &__tree-spin {
+    display: flex !important;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+
+    :deep(.n-spin-container),
+    :deep(.n-spin-content) {
+      display: flex;
+      min-height: 0;
+      flex: 1;
+      flex-direction: column;
+      height: auto !important;
+    }
+  }
+
+  &__tree-scroll {
+    flex: 1;
+    min-height: 0;
+  }
+
+  &__content {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+  }
+}

@@ -1,0 +1,50 @@
+---
+description: Axis 前端目录、注释、弹窗、主题与接口规范（frontend）
+globs: frontend/**/*.{vue,ts,tsx,scss},frontend/**/*.css
+alwaysApply: false
+---
+
+# 前端必须遵守 `docs/业务开发规范.md` §13.9 / §14
+
+## 目录（§14.1）
+
+- `pages/`：仅 login、exception 等壳页面。
+- `modules/<域>/`：业务域；域根只放 `api/`、`permissions/`、`routes?`、`stores?`、`views/`。
+- 菜单 component：`modules/system/views/user/index`（兼容旧路径自动插 `views/`）。
+- `api/`、权限码表收拢到域内：`modules/system/api/user.ts`、`modules/system/permissions/codes.ts`。
+- 访问控制服务仍在 `shared/access`；壳状态仍在全局 `store/`。
+- 域目录只做分组，禁跨功能 `components/`；共享 CRUD 用 `shared/components/axis-crud`。
+- 单功能：`views/<功能>/index.vue`（薄组装）+ `styles/`（必须）+ 有独立子页面时必须有 `components/`；按需 `composables/`、`utils/`。
+- `FormDialog` / `DetailDrawer` / Tab / 侧栏等必须放 `components/`，禁把大块弹窗写进 `index.vue`。
+- 子组件样式进 `styles/`；`.vue` 的 `<style>` 只 `@use`，禁堆业务 CSS；禁 `@import`。
+- 通用工具 → `shared/utils`；时间用 `dayjs`（`shared/utils/date.ts`）；集合优先 `lodash-es`。
+- 前端路径与后端模块名对齐（如 `position` ↔ `Position`，避免 `pos` 混用）。
+- 列表与表单中编码、名称成对出现时：编码在前、名称在后。
+
+## 注释 / 排版
+
+- 区块：`/* ============ 名称 ============ */`，上下各空一行。
+- 函数变量用 `//`；禁止 JSDoc。2 空格、单引号、无连续空行。
+
+## 弹窗 / 抽屉（§14.4）
+
+- `FormDialog`（`v-model`）、`DetailDrawer`（`v-model:show`）。
+- 业务页禁止手写 `NModal` / `NDrawer`。
+- `<template>` 必须单根：页面 + 弹窗/抽屉包在同一根容器内。
+
+## 主题圆角（§14.5）
+
+- 常规圆角：`border-radius: var(--axis-border-radius, 6px)`。
+- 禁止写死与主题脱节的 `8px`/`10px`/`12px`/`14px`；胶囊/头像可用 `999px`/`50%`。
+
+## 滚动条（§14.6）
+
+- 自定义滚动区统一用 `n-scrollbar` / `NScrollbar`；外层定高 + `overflow: hidden`，内部交给 `n-scrollbar`。
+- 禁止业务容器用 `overflow: auto/scroll` 做滚动（原生滚动条）。
+- 例外：`overflow: hidden` 裁剪；`n-data-table` 等组件内部滚动；无法替换的第三方自带滚动。
+- 改到存量原生滚动区域时一并改为 `n-scrollbar`。
+
+## 接口 / 字典
+
+- 禁止循环里逐条调 API；独立请求用 `Promise.all`。
+- 下拉/标签走系统字典，禁止页面写死业务选项文案。

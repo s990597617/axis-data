@@ -1,0 +1,40 @@
+/**
+ * NProgress 主题覆盖
+ *
+ * @description
+ * 覆盖 `nprogress/nprogress.css` 的默认绿色配色，改为跟随全局 `--axis-primary-color`。
+ * 同时修正 naive-ui 侧边栏的层叠上下文对进度条的遮挡问题。
+ *
+ * @remarks
+ * 本文件仅负责**进度条样式**，注册/生命周期由 `@/router/guards/progress.guard.ts` 完成。
+ */
+
+#nprogress {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  z-index: 99999 !important;
+  width: 100%;
+  pointer-events: none;
+
+  .bar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    z-index: 99999 !important;
+    width: 100%;
+    height: 2px !important;
+    background: var(--axis-primary-color, #18a058) !important;
+  }
+
+  .peg {
+    box-shadow:
+      0 0 10px var(--axis-primary-color, #18a058),
+      0 0 5px var(--axis-primary-color, #18a058) !important;
+  }
+}
+
+/* 防止 naive-ui sider 的层叠上下文遮挡进度条 */
+.n-layout-sider {
+  z-index: auto !important;
+}

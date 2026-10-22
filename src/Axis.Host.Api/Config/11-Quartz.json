@@ -1,0 +1,9 @@
+{
+  "Quartz": {
+    "Enabled": true,
+    "InstanceName": "AxisScheduler",
+    "UsePersistentStore": false,
+    "TablePrefix": "QRTZ_",
+    "ConnectionString": ""
+  }
+}

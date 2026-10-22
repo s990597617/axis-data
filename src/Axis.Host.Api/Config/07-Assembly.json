@@ -1,0 +1,7 @@
+{
+  "Assembly": {
+    "SqlSugar": "Axis.Domain",
+    "FastEndPoints": "Axis.Host.Api|Axis.Application",
+    "Mapster": "Axis.Application|Axis.Domain"
+  }
+}

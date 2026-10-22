@@ -1,0 +1,1 @@
+﻿global using Axis.Infrastructure.Components.Database.Repositories;

@@ -1,0 +1,16 @@
+/* AxisCrudPage：列表容器占满剩余高度，表体在内部滚动 */
+.axis-crud-page {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  flex-direction: column;
+
+  :deep(.axis-table) {
+    display: flex;
+    flex: 1 1 0;
+    min-height: 0;
+    flex-direction: column;
+    overflow: hidden;
+  }
+}

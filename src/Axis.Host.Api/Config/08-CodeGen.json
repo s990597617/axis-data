@@ -1,0 +1,15 @@
+{
+  "CodeGen": {
+    "_comment": "管理端代码生成开关。开发可 Enabled=true；生产务必 false。引擎：tools/Axis.Scaffold.Core。",
+    "Enabled": true,
+    "AllowInProduction": false,
+    "RepoRootPath": "",
+    "EntityAssemblyNames": [ "Axis.Domain" ],
+    "BaseEntityNames": [ "BaseEntity", "BaseDataEntity", "BaseEntityId" ],
+    "BaseEntityColumn": {
+      "BaseEntity": [ "Id", "CreatedTime", "CreatedBy", "Creator", "ModifiedTime", "ModifiedBy", "Modifier" ]
+    },
+    "FrontRootPath": "../frontend",
+    "BackendApplicationNamespaces": [ "Axis.Application" ]
+  }
+}

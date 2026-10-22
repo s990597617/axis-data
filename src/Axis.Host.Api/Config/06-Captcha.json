@@ -1,0 +1,24 @@
+{
+  "CaptchaOptions": {
+    "CaptchaType": 8,
+    "CodeLength": 4,
+    "ExpirySeconds": 60,
+    "IgnoreCase": true,
+    "StoreageKeyPrefix": "axis:captcha:",
+    "ImageOption": {
+      "Animation": true,
+      "FontSize": 32,
+      "Width": 140,
+      "Height": 40,
+      "BubbleMinRadius": 5,
+      "BubbleMaxRadius": 10,
+      "BubbleCount": 3,
+      "BubbleThickness": 1.0,
+      "InterferenceLineCount": 2,
+      "FontFamily": "Epilog",
+      "FontStyle": 0,
+      "ForegroundColorHex": "#0D6EFD",
+      "BackgroundColorHex": "#FFFFFF"
+    }
+  }
+}

@@ -1,0 +1,20 @@
+.code-rule-template-field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+
+  &__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px;
+    border: 1px dashed color-mix(in srgb, var(--axis-primary-color) 42%, var(--axis-border-color));
+    border-radius: var(--axis-border-radius, 6px);
+    background: var(
+      --axis-primary-color-soft,
+      color-mix(in srgb, var(--axis-primary-color) 8%, var(--axis-card-color))
+    );
+  }
+}

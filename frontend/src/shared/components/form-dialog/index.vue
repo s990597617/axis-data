@@ -1,0 +1,272 @@
+<script setup lang="ts">
+  import { computed, provide } from 'vue'
+  import type { CSSProperties } from 'vue'
+  import { NButton, NModal, NSpin, NTag } from 'naive-ui'
+
+  import { Icon } from '@/shared/icons'
+
+  import { formDialogLayoutKey } from './context'
+  import type { FormDialogExposed, FormDialogProps } from './types'
+
+  defineOptions({ name: 'FormDialog' })
+
+  const props = withDefaults(defineProps<FormDialogProps>(), {
+    modelValue: false,
+    title: '',
+    iconTheme: 'primary',
+    statusType: 'default',
+    width: 700,
+    maxBodyHeight: 'min(68vh, 720px)',
+    layout: 'default',
+    loading: false,
+    draggable: true,
+    maskClosable: false,
+    closeOnEsc: true,
+    destroyOnClose: false,
+    showFooter: true,
+    showCancel: true,
+    showConfirm: true,
+    cancelText: '取消',
+    confirmText: '确定',
+    confirmLoading: false,
+    confirmDisabled: false,
+    extraClass: ''
+  })
+
+  const emit = defineEmits<{
+    'update:modelValue': [value: boolean]
+    close: []
+    cancel: []
+    confirm: []
+    afterLeave: []
+  }>()
+
+  defineSlots<{
+    default?: () => unknown
+    'header-extra'?: () => unknown
+    footer?: (props: { close: () => void; cancel: () => void; confirm: () => void }) => unknown
+  }>()
+
+  const layout = computed(() => props.layout)
+  provide(formDialogLayoutKey, layout)
+
+  const dialogStyle = computed<CSSProperties>(() => ({
+    width: toCssSize(props.width),
+    maxWidth: 'calc(100vw - 32px)'
+  }))
+
+  const bodyStyle = computed(() => ({
+    maxHeight: toCssSize(props.maxBodyHeight),
+    ...props.bodyStyle
+  }))
+
+  function toCssSize(value: string | number) {
+    return typeof value === 'number' ? `${value}px` : value
+  }
+
+  function updateVisible(value: boolean) {
+    emit('update:modelValue', value)
+    if (!value) emit('close')
+  }
+
+  function open() {
+    emit('update:modelValue', true)
+  }
+
+  function close() {
+    emit('update:modelValue', false)
+    emit('close')
+  }
+
+  function cancel() {
+    emit('cancel')
+    close()
+  }
+
+  function confirm() {
+    emit('confirm')
+  }
+
+  defineExpose<FormDialogExposed>({ open, close })
+</script>
+
+<template>
+  <n-modal
+    :show="modelValue"
+    preset="card"
+    :style="dialogStyle"
+    :class="['form-dialog', `form-dialog--${layout}`, extraClass]"
+    :draggable="draggable"
+    :mask-closable="maskClosable"
+    :close-on-esc="closeOnEsc"
+    :display-directive="destroyOnClose ? 'if' : 'show'"
+    :segmented="{ content: true, footer: 'soft' }"
+    :content-style="{ padding: 0 }"
+    :header-style="{ padding: '16px 20px' }"
+    :footer-style="{ padding: '12px 20px' }"
+    @update:show="updateVisible"
+    @after-leave="emit('afterLeave')"
+  >
+    <template #header>
+      <div class="form-dialog__header">
+        <div v-if="icon" class="form-dialog__header-icon" :class="`is-${iconTheme}`">
+          <Icon v-if="typeof icon === 'string'" :icon="icon" />
+          <component :is="icon" v-else />
+        </div>
+        <div class="form-dialog__titles">
+          <div class="form-dialog__title-row">
+            <span class="form-dialog__title">{{ title }}</span>
+            <n-tag v-if="statusText" size="small" round :type="statusType">
+              {{ statusText }}
+            </n-tag>
+          </div>
+          <span v-if="subtitle" class="form-dialog__subtitle">{{ subtitle }}</span>
+        </div>
+        <slot name="header-extra" />
+      </div>
+    </template>
+
+    <div class="form-dialog__body" :style="bodyStyle">
+      <n-spin :show="loading" class="form-dialog__spin">
+        <slot />
+      </n-spin>
+    </div>
+
+    <template v-if="showFooter" #footer>
+      <div class="form-dialog__footer">
+        <slot name="footer" :close="close" :cancel="cancel" :confirm="confirm">
+          <n-button v-if="showCancel" @click="cancel">{{ cancelText }}</n-button>
+          <n-button
+            v-if="showConfirm"
+            type="primary"
+            :loading="confirmLoading"
+            :disabled="confirmDisabled"
+            @click="confirm"
+          >
+            {{ confirmText }}
+          </n-button>
+        </slot>
+      </div>
+    </template>
+  </n-modal>
+</template>
+
+<style scoped lang="scss">
+  .form-dialog {
+    &__header {
+      display: flex;
+      min-width: 0;
+      align-items: center;
+      gap: 12px;
+      padding-right: 28px;
+    }
+
+    &__header-icon {
+      display: inline-flex;
+      width: 36px;
+      height: 36px;
+      flex: 0 0 36px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      background: var(--axis-primary-color-soft);
+      color: var(--axis-primary-color);
+      font-size: 18px;
+
+      &.is-success {
+        background: rgba(24, 160, 88, 0.1);
+        color: #18a058;
+      }
+
+      &.is-warning {
+        background: rgba(240, 160, 32, 0.1);
+        color: #f0a020;
+      }
+
+      &.is-error {
+        background: rgba(208, 48, 80, 0.1);
+        color: #d03050;
+      }
+
+      &.is-info {
+        background: rgba(32, 128, 240, 0.1);
+        color: #2080f0;
+      }
+    }
+
+    &__titles {
+      min-width: 0;
+    }
+
+    &__title-row {
+      display: flex;
+      min-width: 0;
+      align-items: center;
+      gap: 8px;
+    }
+
+    &__title {
+      overflow: hidden;
+      color: var(--axis-text-color-1);
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 22px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    &__subtitle {
+      display: block;
+      margin-top: 2px;
+      overflow: hidden;
+      color: var(--axis-text-color-3);
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 18px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    &__body {
+      min-height: 100px;
+      padding: 20px;
+      overflow: auto;
+    }
+
+    &--sectioned &__body {
+      padding: 12px;
+      background: linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--axis-primary-color) 5%, var(--axis-bg-color)) 0%,
+        var(--axis-bg-color) 100%
+      );
+    }
+
+    &__spin {
+      min-height: 60px;
+    }
+
+    &__footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .form-dialog {
+      &__header-icon {
+        display: none;
+      }
+
+      &__body {
+        padding: 16px;
+      }
+
+      &--sectioned &__body {
+        padding: 12px;
+      }
+    }
+  }
+</style>

@@ -1,0 +1,200 @@
+.axis-table {
+  display: flex;
+  width: 100%;
+  min-height: 0;
+  flex-direction: column;
+
+  :deep(.axis-table-search),
+  :deep(.axis-table-toolbar) {
+    flex-shrink: 0;
+  }
+
+  &__main {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    flex-direction: column;
+    padding: 10px 14px 14px;
+    border: 1px solid var(--axis-border-color);
+    border-radius: 8px;
+    background: var(--axis-card-color);
+    overflow: hidden;
+  }
+
+  &__selection-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+    padding: 6px 12px;
+    border: 1px solid color-mix(in srgb, var(--axis-primary-color) 28%, transparent);
+    border-radius: 6px;
+    background: var(--axis-primary-color-soft);
+    color: var(--axis-text-color-2);
+    font-size: 13px;
+  }
+
+  &__selection-summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    strong {
+      color: var(--axis-primary-color);
+      font-weight: 600;
+    }
+  }
+
+  &__selection-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  &__body {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  &__skeleton {
+    position: absolute;
+    top: 40px;
+    right: 1px;
+    left: 1px;
+    z-index: 2;
+    padding: 0 12px 12px;
+    background: var(--axis-card-color);
+    pointer-events: none;
+  }
+
+  &__skeleton-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+    gap: 18px;
+    align-items: center;
+    min-height: 44px;
+    border-bottom: 1px solid var(--axis-border-color);
+  }
+
+  &__skeleton-line {
+    display: inline-block;
+    height: 10px;
+    max-width: 100%;
+    border-radius: 6px;
+    background: linear-gradient(
+      90deg,
+      rgba(148, 163, 184, 0.14) 0%,
+      rgba(148, 163, 184, 0.26) 45%,
+      rgba(148, 163, 184, 0.14) 90%
+    );
+    background-size: 220% 100%;
+    animation: axis-table-skeleton-wave 1.15s ease-in-out infinite;
+  }
+}
+
+@keyframes axis-table-skeleton-wave {
+  0% {
+    background-position: 100% 0;
+  }
+
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+/* ---- 操作列图标按钮（h() 渲染，需 :deep 穿透） ---- */
+.axis-table :deep(.axis-table__action-bar) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.axis-table :deep(.axis-table__action-text) {
+  font-weight: 400;
+}
+
+.axis-table :deep(.axis-table__action-icon) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--action-color, var(--axis-text-color-3));
+  font-size: 15px;
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.axis-table :deep(.axis-table__action-icon:hover:not(:disabled)) {
+  color: var(--action-hover-color, var(--axis-primary-color));
+  background: color-mix(
+    in srgb,
+    var(--action-hover-color, var(--axis-primary-color)) 8%,
+    transparent
+  );
+}
+
+.axis-table :deep(.axis-table__action-icon:disabled) {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.axis-table :deep(.axis-table__action-more) {
+  display: inline-flex;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 8px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--axis-text-color-2);
+  font: inherit;
+  font-size: 12px;
+  line-height: 28px;
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
+
+  svg {
+    width: 11px;
+    height: 11px;
+  }
+}
+
+.axis-table :deep(.axis-table__action-more:hover) {
+  background: var(--axis-primary-color-soft);
+  color: var(--axis-primary-color);
+}
+
+/* ---- NDataTable 样式覆盖：仅补充 themeOverrides 无法覆盖的部分 ---- */
+.axis-table :deep(.n-data-table-th) {
+  font-weight: 600;
+  color: var(--axis-text-color-2);
+  background: color-mix(in srgb, var(--axis-body-color) 60%, var(--axis-card-color));
+}
+
+.axis-table :deep(.n-data-table-tr:hover > .n-data-table-td) {
+  background: color-mix(in srgb, var(--axis-primary-color) 4%, transparent) !important;
+}
+
+.axis-table :deep(.n-pagination) {
+  margin-top: 10px;
+}
+
+.axis-table :deep(.n-data-table-empty) {
+  padding: 32px 0;
+}

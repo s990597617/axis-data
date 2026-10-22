@@ -1,0 +1,64 @@
+/**
+ * Axis 主题 CSS 变量声明
+ *
+ * @description
+ * 集中声明所有 `--axis-*` 变量的默认值，供 IDE/linter 识别以及 JS 注入前的 fallback。
+ * 运行时实际值由 `@/layouts/composables/use-theme.ts` 根据主题 store 动态覆盖。
+ *
+ * @remarks
+ * - 本文件仅作默认值与类型文档使用，不应作为业务主色来源
+ * - 新增主题变量请同步更新 `use-theme.ts` 的注入逻辑
+ */
+
+:root {
+  /* ---------- 主色派生 ---------- */
+  --axis-primary-color: #18a058;
+  --axis-primary-color-hover: #36ad6a;
+  --axis-primary-color-pressed: #0c7a43;
+  --axis-primary-color-suppl: #36ad6a;
+  --axis-primary-color-soft: rgba(24, 160, 88, 0.12);
+
+  /* ---------- 尺寸 ---------- */
+  --axis-border-radius: 6px;
+  --axis-header-height: 50px;
+  --axis-tabs-height: 40px;
+
+  /* ---------- 亮色表面（默认） ---------- */
+  --axis-bg-color: #f5f6fb;
+  --axis-card-color: #ffffff;
+  --axis-border-color: #efeff5;
+  --axis-action-color: #f5f5f5;
+  --axis-text-color-1: rgba(0, 0, 0, 0.88);
+  --axis-text-color-2: rgba(0, 0, 0, 0.65);
+  --axis-text-color-3: rgba(0, 0, 0, 0.45);
+  --axis-rail-bg: #001529;
+
+  /* ---------- 侧边栏独立表面 ---------- */
+  --axis-sider-bg: #ffffff;
+  --axis-sider-text: rgba(0, 0, 0, 0.88);
+  --axis-sider-text-2: rgba(0, 0, 0, 0.65);
+  --axis-sider-border: rgba(0, 0, 0, 0.06);
+  --axis-sider-action: rgba(0, 0, 0, 0.04);
+
+  /* ---------- 顶部栏独立表面 ---------- */
+  --axis-header-bg: #ffffff;
+  --axis-header-text: rgba(0, 0, 0, 0.88);
+  --axis-header-text-2: rgba(0, 0, 0, 0.65);
+  --axis-header-border: rgba(0, 0, 0, 0.06);
+  --axis-header-action: rgba(0, 0, 0, 0.04);
+
+  /* ---------- 全局滤镜 ---------- */
+  --axis-filter: none;
+}
+
+/* 暗色默认值（被 use-theme.ts 的 watchEffect 动态重写，此处仅为 fallback） */
+html.dark {
+  --axis-bg-color: #101014;
+  --axis-card-color: #18181c;
+  --axis-border-color: #2c2c32;
+  --axis-action-color: #2c2c32;
+  --axis-text-color-1: rgba(255, 255, 255, 0.9);
+  --axis-text-color-2: rgba(255, 255, 255, 0.7);
+  --axis-text-color-3: rgba(255, 255, 255, 0.45);
+  --axis-rail-bg: #0b0b0e;
+}

@@ -1,0 +1,47 @@
+/*
+ * Noto Sans SC 仅作为缺少中文系统字体时的兜底。
+ * Windows / macOS 优先使用经过系统 Hinting 优化的原生界面字体，
+ * 避免小字号网页字体在 Chromium 中出现发虚、字面偏扁的问题。
+ */
+@font-face {
+  font-family: 'Noto Sans SC';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url('@fontsource/noto-sans-sc/files/noto-sans-sc-chinese-simplified-400-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Noto Sans SC';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url('@fontsource/noto-sans-sc/files/noto-sans-sc-chinese-simplified-700-normal.woff2')
+    format('woff2');
+}
+
+:root {
+  --axis-font-family:
+    system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI',
+    'Microsoft YaHei UI', 'Microsoft YaHei', 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC',
+    Arial, sans-serif;
+}
+
+html,
+body,
+#app {
+  font-family: var(--axis-font-family);
+  font-synthesis: none;
+}
+
+html {
+  text-size-adjust: 100%;
+}
+
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+}

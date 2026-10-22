@@ -1,0 +1,48 @@
+---
+description: Axis 后端业务规范（分层、命名、校验、FE、SqlSugar、枚举）
+globs: src/Axis.Application/**/*.cs,src/Axis.Host.Api/**/*.cs,src/Axis.Domain/**/*.cs,src/Axis.Domain.Data/**/*.cs,src/Axis.Infrastructure.Data/**/*.cs,src/Axis.Infrastructure/**/*.cs
+alwaysApply: false
+---
+
+# 业务代码必须遵守 `docs/业务开发规范.md`
+
+## 分层 / 依赖 / 模块（§1）
+
+- Host：路由/权限/HTTP；禁业务 SQL。Application：用例编排。Domain：实体枚举种子。Domain.Data：仓储/缓存接口。Infrastructure.Data：实现。
+- Application **只依赖接口**，禁止引用 `Infrastructure.Data`、禁止图省事堆大段 `ISqlSugarClient` 投影（复杂查询下沉仓储）。
+- 按模块竖切；禁止跨模块挂载（如机构树不得塞进 UserAppService）。
+- 跨模块写收件箱：只发布 `InboxDeliverEvent` / `InboxRecallEvent`；由 Inbox Handler 落库；禁止业务方直接写 `sys_inbox`。
+
+## 拆分与命名（§2）
+
+- `Dto/`、`Validators/`、`IXxxAppService.cs`、`XxxAppService.cs` 分文件；Endpoint **一文件一类**，文件名=类名。
+- DTO/Input/Query 用 `sealed`；分页 `XxxPageQuery`、出参 `XxxDto`、共用入参优先 `SaveXxxInput`。
+- 输入策略模块内统一：差异小用 `Save*`，大用 `Create*`+`Update*`，勿混用。
+
+## 字典 / 枚举 / 状态（§2.4、§11）
+
+- 业务状态优先系统字典，Value 语义编码（`InProcess`）；前端按字典翻译。
+- 代码强分支 → int 枚举（`Domain/Enums`，一枚举一文件）；极简固定可用裸 int+逐值注释。
+- 新建枚举：`Unknown = 0`；禁中文名、魔法数字/字符串。Key/错误码/权限码集中常量。
+
+## 字典配置缓存（§2.5）
+
+- 业务读走 `ISysDictCache` / `ISysConfigCache`；写库后刷新；启动可 Warm-up；禁业务里私自拼缓存键。
+
+## 校验 / FE / Mapster（§4、§7、§8）
+
+- 格式校验在 `Validators/`；唯一性/存在性在 AppService；权限用 `RequirePermission`（禁魔法权限串）。
+- Endpoint `HandleAsync` 只调 Service；多表写 / 删主清从 / 授权先删后插 → `Transactional`。
+- 映射用 `IMapper` + `IRegister`，敏感字段 Ignore；Insert/Update 业务字段 `mapper.Map`，禁逐字段 new；`Id`/Created*/Modified* 交 AOP（§7.5），只手补 `TenantId`、密码等。
+
+## 注释 / 规模 / Helper（§3、§10、§12）
+
+- 多行 XML；禁单行 summary、禁 inheritdoc；TODO：`// TODO(AXIS-xxx, yyyy-MM-dd): ...`
+- 方法 ≤50 行、参数 ≤5、嵌套 ≤3；类 ≤500 行；一文件一公共类型；禁 `#region` 藏长类。
+- Helper 仅纯函数、有领域名；扩展方法无副作用、不隐藏 Db/网络/缓存。
+
+## SqlSugar / 效率 / 租户（§13）
+
+- 关联用 Join/Subqueryable + Select 投影；禁 N+1、循环单查；同名投影 `Select(..., true)`。
+- 统计用聚合；批量用 Contains；能一个接口带齐勿拆；前端禁循环调接口。
+- 字段 `ColumnDescription` 中文必填；生产禁自动改表；事务在 AppService/UoW。

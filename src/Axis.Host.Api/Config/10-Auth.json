@@ -1,0 +1,31 @@
+{
+  "Auth": {
+    "AllowedOrigins": [
+      "http://localhost:3000",
+      "http://127.0.0.1:3000"
+    ],
+    "RefreshTokenCookie": {
+      "Name": "axis-refresh-token",
+      "Path": "/api/sys/author",
+      "Secure": false,
+      "SameSite": "Lax"
+    },
+    "AntiReplay": {
+      "Enabled": true,
+      "RequireSignature": true,
+      "MaxSkewSeconds": 300,
+      "TimestampHeader": "X-Axis-Timestamp",
+      "NonceHeader": "X-Axis-Nonce",
+      "SignHeader": "X-Axis-Sign",
+      "MinNonceLength": 16
+    },
+    "OpenApiSignature": {
+      "AccessKeyHeader": "accessKey",
+      "TimestampHeader": "timestamp",
+      "NonceHeader": "nonce",
+      "SignHeader": "sign",
+      "MaxSkewSeconds": 300,
+      "MinNonceLength": 6
+    }
+  }
+}

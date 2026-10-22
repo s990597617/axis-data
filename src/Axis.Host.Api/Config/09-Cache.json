@@ -1,0 +1,27 @@
+{
+  "AxisCaching": {
+    "CacheType": "memory",
+    "Memory": {
+      "ProviderName": "memory",
+      "DefaultExpirationMinutes": 30
+    },
+    "Redis": {
+      "ProviderName": "redis",
+      "ConnectionString": "localhost:6379",
+      "Database": 0,
+      "KeyPrefix": "axis:"
+    },
+    "Hybrid": {
+      "ProviderName": "hybrid",
+      "LocalCacheProviderName": "memory",
+      "DistributedCacheProviderName": "redis",
+      "TopicName": "axis-cache-topic"
+    },
+    "CacheKey": {
+      "GlobalPrefix": "axis",
+      "Separator": ":",
+      "MaxKeyLength": 250,
+      "EnableKeyHashing": false
+    }
+  }
+}

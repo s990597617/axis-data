@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <!-- 全解决方案关闭可空引用类型分析；保留代码中的 string? 写法不报 CS8632 -->
+    <Nullable>disable</Nullable>
+    <NoWarn>$(NoWarn);CS8632</NoWarn>
+  </PropertyGroup>
+</Project>

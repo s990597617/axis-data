@@ -1,0 +1,8 @@
+{
+  "Axis": {
+    "SignalR": {
+      "Enabled": true,
+      "HubPath": "/hubs/notify"
+    }
+  }
+}

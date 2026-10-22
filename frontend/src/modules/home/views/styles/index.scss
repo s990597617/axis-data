@@ -1,0 +1,137 @@
+/* ============ 工作台整体布局 ============ */
+
+.home-page {
+  --home-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --home-shadow: 0 18px 48px -32px rgba(15, 23, 42, 0.3);
+  position: relative;
+  isolation: isolate;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 100%;
+  padding: 12px;
+  color: var(--axis-text-color-1);
+
+  &::before {
+    content: '';
+    position: fixed;
+    z-index: -1;
+    top: calc(var(--axis-header-height) + var(--axis-tabs-height));
+    right: 0;
+    width: min(42vw, 680px);
+    height: 520px;
+    pointer-events: none;
+    background: radial-gradient(
+      circle at 70% 12%,
+      color-mix(in srgb, var(--axis-primary-color) 7%, transparent),
+      transparent 68%
+    );
+  }
+}
+
+.home-page :deep(.n-spin-container),
+.home-page :deep(.n-spin-content) {
+  width: 100%;
+}
+
+.home-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.home-section-heading {
+  display: flex;
+  gap: 24px;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 4px;
+}
+
+.home-section-heading__eyebrow {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--axis-primary-color);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
+.home-section-heading__title {
+  margin: 0;
+  color: var(--axis-text-color-1);
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.home-section-heading__desc {
+  margin: 0 0 2px;
+  color: var(--axis-text-color-3);
+  font-size: 13px;
+}
+
+.home-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(340px, 0.85fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
+.home-page :deep(.home-hero),
+.home-overview,
+.home-page :deep(.home-panel) {
+  animation: home-rise 0.65s var(--home-ease) both;
+}
+
+.home-overview {
+  animation-delay: 0.06s;
+}
+
+.home-page :deep(.home-panel) {
+  animation-delay: 0.12s;
+}
+
+.home-page :deep(.home-panel--monitor) {
+  animation-delay: 0.18s;
+}
+
+@keyframes home-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 1180px) {
+  .home-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .home-page {
+    padding: 8px;
+  }
+
+  .home-section-heading {
+    align-items: flex-start;
+  }
+
+  .home-section-heading__desc {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-page :deep(.home-hero),
+  .home-overview,
+  .home-page :deep(.home-panel) {
+    animation: none;
+  }
+}

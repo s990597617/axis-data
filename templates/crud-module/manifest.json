@@ -1,0 +1,91 @@
+{
+  "name": "crud-module",
+  "description": "Position 级标准 CRUD（Name/Code/Status/OrderNo/Remark）",
+  "files": [
+    {
+      "from": "backend/Domain/Entity.cs",
+      "to": "src/Axis.Domain/__Area__/__Entity__.cs"
+    },
+    {
+      "from": "backend/Application/IAppService.cs",
+      "to": "src/Axis.Application/__Area__/__Module__/I__Module__AppService.cs"
+    },
+    {
+      "from": "backend/Application/AppService.cs",
+      "to": "src/Axis.Application/__Area__/__Module__/__Module__AppService.cs"
+    },
+    {
+      "from": "backend/Application/Dto/Dto.cs",
+      "to": "src/Axis.Application/__Area__/__Module__/Dto/__Module__Dto.cs"
+    },
+    {
+      "from": "backend/Application/Dto/SaveInput.cs",
+      "to": "src/Axis.Application/__Area__/__Module__/Dto/Save__Module__Input.cs"
+    },
+    {
+      "from": "backend/Application/Dto/PageQuery.cs",
+      "to": "src/Axis.Application/__Area__/__Module__/Dto/__Module__PageQuery.cs"
+    },
+    {
+      "from": "backend/Application/Dto/IdRequest.cs",
+      "to": "src/Axis.Application/__Area__/__Module__/Dto/__Module__IdRequest.cs"
+    },
+    {
+      "from": "backend/Application/Validators/SaveInputValidator.cs",
+      "to": "src/Axis.Application/__Area__/__Module__/Validators/Save__Module__InputValidator.cs"
+    },
+    {
+      "from": "backend/Host/PageEndpoint.cs",
+      "to": "src/Axis.Host.Api/__Area__Endpoints/__Module__/Page__Module__sEndpoint.cs"
+    },
+    {
+      "from": "backend/Host/CreateEndpoint.cs",
+      "to": "src/Axis.Host.Api/__Area__Endpoints/__Module__/Create__Module__Endpoint.cs"
+    },
+    {
+      "from": "backend/Host/UpdateEndpoint.cs",
+      "to": "src/Axis.Host.Api/__Area__Endpoints/__Module__/Update__Module__Endpoint.cs"
+    },
+    {
+      "from": "backend/Host/DeleteEndpoint.cs",
+      "to": "src/Axis.Host.Api/__Area__Endpoints/__Module__/Delete__Module__Endpoint.cs"
+    },
+    {
+      "from": "backend/permissions/AreaPermissionCodes.cs",
+      "to": "src/Axis.Domain/__Area__/__Area__PermissionCodes.cs",
+      "when": "areaPermissionFull"
+    },
+    {
+      "from": "frontend/api/api.ts",
+      "to": "frontend/src/modules/__area__/api/__module_kebab__.ts",
+      "side": "frontend"
+    },
+    {
+      "from": "frontend/views/index.vue",
+      "to": "frontend/src/modules/__area__/views/__module_kebab__/index.vue",
+      "side": "frontend"
+    },
+    {
+      "from": "frontend/views/composables/usePage.ts",
+      "to": "frontend/src/modules/__area__/views/__module_kebab__/composables/use__Module__Page.ts",
+      "side": "frontend"
+    },
+    {
+      "from": "frontend/views/styles/index.scss",
+      "to": "frontend/src/modules/__area__/views/__module_kebab__/styles/index.scss",
+      "side": "frontend"
+    },
+    {
+      "from": "frontend/permissions/codes.ts",
+      "to": "frontend/src/modules/__area__/permissions/codes.ts",
+      "side": "frontend",
+      "when": "frontendPermissionFull"
+    },
+    {
+      "from": "frontend/permissions/index.ts",
+      "to": "frontend/src/modules/__area__/permissions/index.ts",
+      "side": "frontend",
+      "when": "frontendPermissionFull"
+    }
+  ]
+}

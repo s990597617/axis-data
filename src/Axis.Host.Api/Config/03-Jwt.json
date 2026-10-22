@@ -1,0 +1,9 @@
+{
+  "Jwt": {
+    "Token": "GFxZdEzcQbzgeGWSLKXMqS5m3N+dhhTxVbG2kavmuX/0FSiK/znIY+5nC8s03H2qvg61swqsE6LEB0MiCnOklw==",
+    "Issuer": "Axis",
+    "Audience": "Axis.Client",
+    "TokenExpire": 7200,
+    "RefreshTokenExpire": 604800
+  }
+}

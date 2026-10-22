@@ -1,0 +1,43 @@
+.routing-steps-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+.routing-steps-field__hint {
+  font-size: 13px;
+}
+
+.routing-steps-field__table {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.routing-steps-field__head,
+.routing-steps-field__row {
+  display: grid;
+  grid-template-columns: 88px minmax(168px, 1.6fr) 108px 72px minmax(96px, 1fr) 36px;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+}
+
+.routing-steps-field__head {
+  color: var(--n-text-color-3);
+  font-size: 12px;
+  padding: 0 2px;
+}
+
+.routing-steps-field__empty {
+  color: var(--n-text-color-3);
+  font-size: 13px;
+  padding: 8px 0;
+}
+
+.routing-steps-field__add {
+  align-self: flex-start;
+}

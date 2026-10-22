@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Axis.Application\Axis.Application.csproj" />
+    <ProjectReference Include="..\Axis.Infrastructure\Axis.Infrastructure.csproj" />
+    <ProjectReference Include="..\Axis.Infrastructure.Data\Axis.Infrastructure.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Use Update to avoid duplicating the SDK's implicit Content items while setting CopyToOutputDirectory -->
+    <Content Update="Config\**\*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>

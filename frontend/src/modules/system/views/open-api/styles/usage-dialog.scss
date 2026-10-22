@@ -1,0 +1,100 @@
+.openapi-usage {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  color: var(--axis-text-color-2);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.openapi-usage__section {
+  min-width: 0;
+}
+
+.openapi-usage__title {
+  margin: 0 0 10px;
+  color: var(--axis-text-color-1);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 22px;
+}
+
+.openapi-usage__text {
+  margin: 0 0 8px;
+}
+
+.openapi-usage__list {
+  margin: 0 0 8px;
+  padding-left: 1.2em;
+
+  li + li {
+    margin-top: 4px;
+  }
+}
+
+.openapi-usage code {
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--axis-primary-color) 10%, var(--axis-bg-color));
+  color: var(--axis-primary-color);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.openapi-usage__code {
+  margin: 8px 0 12px;
+  padding: 12px 14px;
+  overflow-x: auto;
+  border: 1px solid color-mix(in srgb, var(--axis-primary-color) 14%, var(--axis-border-color));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--axis-primary-color) 6%, var(--axis-bg-color));
+  color: var(--axis-text-color-1);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.openapi-usage__headers {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 12px 14px;
+  border: 1px solid var(--axis-border-color);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--axis-text-color-3) 4%, var(--axis-bg-color));
+}
+
+.openapi-usage__header-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+
+  span {
+    color: var(--axis-text-color-2);
+  }
+}
+
+.openapi-usage__footer-tip {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--axis-text-color-3) 6%, var(--axis-bg-color));
+  color: var(--axis-text-color-3);
+  font-size: 13px;
+
+  a {
+    color: var(--axis-primary-color);
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}

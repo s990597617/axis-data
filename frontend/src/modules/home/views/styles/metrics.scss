@@ -1,0 +1,192 @@
+/* ============ 今日指标摘要 ============ */
+
+.home-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.home-metric {
+  --metric-delay: 0s;
+  --metric-tone: var(--axis-primary-color);
+  position: relative;
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr) 24px;
+  gap: 13px;
+  align-items: flex-start;
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 126px;
+  padding: 16px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--axis-border-color) 38%, transparent);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--axis-card-color) 97%, var(--axis-bg-color));
+  color: inherit;
+  text-align: left;
+  box-shadow: 0 12px 30px -28px rgba(15, 23, 42, 0.34);
+  animation: home-metric-rise 0.58s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--metric-delay);
+  transition:
+    transform 0.22s ease,
+    border-color 0.22s ease,
+    box-shadow 0.22s ease;
+
+  &.is-clickable {
+    cursor: pointer;
+
+    &:hover {
+      transform: translateY(-3px);
+      border-color: color-mix(in srgb, var(--metric-tone) 22%, var(--axis-border-color));
+      box-shadow: 0 22px 44px -29px color-mix(in srgb, var(--metric-tone) 34%, transparent);
+
+      .home-metric__arrow {
+        transform: translate(2px, -2px) rotate(45deg);
+        color: var(--metric-tone);
+      }
+
+      .home-metric__glow {
+        opacity: 0.13;
+        transform: scale(1.12);
+      }
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--metric-tone) 50%, transparent);
+    outline-offset: 3px;
+  }
+}
+
+.home-metric.is-success {
+  --metric-tone: #10b981;
+}
+
+.home-metric.is-warning {
+  --metric-tone: #f59e0b;
+}
+
+.home-metric.is-danger {
+  --metric-tone: #f05268;
+}
+
+.home-metric.is-info {
+  --metric-tone: #3b82f6;
+}
+
+.home-metric__icon {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--metric-tone) 11%, var(--axis-card-color));
+  color: var(--metric-tone);
+  font-size: 20px;
+}
+
+.home-metric__body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.home-metric__label {
+  margin-bottom: 7px;
+  color: var(--axis-text-color-3);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.home-metric__value {
+  margin-bottom: 8px;
+  color: var(--axis-text-color-1);
+  font-size: clamp(27px, 2vw, 34px);
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.home-metric__hint {
+  overflow: hidden;
+  color: var(--axis-text-color-3);
+  font-size: 12px;
+  line-height: 1.45;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-metric__arrow {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  color: var(--axis-text-color-3);
+  font-size: 12px;
+  transform: rotate(45deg);
+  transition:
+    transform 0.2s ease,
+    color 0.2s ease;
+}
+
+.home-metric__glow {
+  position: absolute;
+  right: -34px;
+  bottom: -52px;
+  width: 122px;
+  height: 122px;
+  border-radius: 50%;
+  background: var(--metric-tone);
+  opacity: 0.07;
+  filter: blur(4px);
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+
+@keyframes home-metric-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 1320px) {
+  .home-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .home-metrics {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .home-metric {
+    min-height: 112px;
+    padding: 15px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-metric {
+    animation: none;
+  }
+}

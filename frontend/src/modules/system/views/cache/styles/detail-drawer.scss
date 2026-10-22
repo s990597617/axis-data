@@ -1,0 +1,88 @@
+.cache-detail {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+
+  &__preview {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    padding: 14px 16px 12px;
+    border: 1px solid color-mix(in srgb, var(--axis-border-color) 80%, transparent);
+    border-radius: var(--axis-border-radius, 6px);
+    background: var(--axis-card-color);
+  }
+
+  &__preview-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-shrink: 0;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed color-mix(in srgb, var(--axis-border-color) 85%, transparent);
+  }
+
+  &__preview-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--axis-text-color-1);
+    font-size: 14px;
+    font-weight: 600;
+
+    &::before {
+      width: 3px;
+      height: 14px;
+      border-radius: 999px;
+      background: linear-gradient(
+        180deg,
+        var(--axis-primary-color),
+        color-mix(in srgb, var(--axis-primary-color) 45%, transparent)
+      );
+      content: '';
+    }
+  }
+
+  &__preview-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  &__preview-hint {
+    color: var(--axis-text-color-3);
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  &__code {
+    flex: 1;
+    min-height: 0;
+    margin: 0;
+    overflow: auto;
+    padding: 12px 14px;
+    border: 1px solid color-mix(in srgb, var(--axis-border-color) 72%, transparent);
+    border-radius: var(--axis-border-radius, 6px);
+    background: color-mix(in srgb, var(--axis-bg-color) 55%, var(--axis-card-color));
+    color: var(--axis-text-color-1);
+    font-size: 12px;
+    line-height: 1.6;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  &__empty {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 120px;
+  }
+}

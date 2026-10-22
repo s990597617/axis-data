@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>%VITE_APP_TITLE%</title>
+    <style>
+      /* ============ 首屏 Splash ============
+         极简风：近白底 + 细点阵 + 品牌 logo + 细进度条。
+         应用挂载完成后由 main.ts 追加 `.is-hidden` 淡出并移除节点。
+      ============================================== */
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: #fafafa;
+      }
+
+      #app-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0;
+        overflow: hidden;
+        color: #0a0a0a;
+        font-family:
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI Variable',
+          'Segoe UI',
+          'PingFang SC',
+          'Microsoft YaHei UI',
+          'Microsoft YaHei',
+          sans-serif;
+        /* 冷调近白底 + 几乎不可见的点阵网格 */
+        background-color: #fafafa;
+        background-image: radial-gradient(circle, #e4e4e7 1px, transparent 1px);
+        background-size: 24px 24px;
+        background-position: -1px -1px;
+        transition:
+          opacity 0.4s ease,
+          transform 0.4s ease;
+      }
+      #app-splash.is-hidden {
+        opacity: 0;
+        transform: scale(1.01);
+        pointer-events: none;
+      }
+
+      /* 顶部 / 底部柔和光晕，避免纯色点阵太冷 */
+      #app-splash::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(ellipse 60% 40% at 50% 0%, rgba(47, 114, 255, 0.06), transparent 70%),
+          radial-gradient(ellipse 50% 40% at 50% 100%, rgba(47, 114, 255, 0.04), transparent 70%);
+        pointer-events: none;
+      }
+
+      .app-splash__brand {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+        z-index: 1;
+      }
+      .app-splash__logo {
+        width: 56px;
+        height: 56px;
+        object-fit: contain;
+        user-select: none;
+        /* 轻微浮现呼吸，克制，不抢眼 */
+        animation: splash-breathe 2.4s ease-in-out infinite;
+      }
+      .app-splash__title {
+        margin: 0;
+        font-size: 17px;
+        font-weight: 600;
+        letter-spacing: 1px;
+        color: #0a0a0a;
+      }
+      /* 扫光文字：灰底字 + 一道深色高光无缝扫过
+         关键：渐变首尾同色 + repeat-x + 位移恰好一个 tile 宽度 + linear 速度 */
+      .app-splash__subtitle {
+        margin: 0;
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 1px;
+        color: transparent;
+        background-image: linear-gradient(
+          90deg,
+          #a1a1aa 0%,
+          #a1a1aa 42%,
+          #0a0a0a 50%,
+          #a1a1aa 58%,
+          #a1a1aa 100%
+        );
+        background-size: 200% 100%;
+        background-repeat: repeat-x;
+        -webkit-background-clip: text;
+        background-clip: text;
+        animation: splash-shimmer 2.6s linear infinite;
+      }
+
+      @keyframes splash-breathe {
+        0%,
+        100% {
+          transform: translateY(0);
+          opacity: 1;
+        }
+        50% {
+          transform: translateY(-2px);
+          opacity: 0.92;
+        }
+      }
+      @keyframes splash-shimmer {
+        /* 位移恰好 = background-size 的宽度 (200%)，正好一个 tile
+             tile 首尾同色，所以 0% 和 100% 视觉完全一致，无缝循环 */
+        0% {
+          background-position: 0% 0;
+        }
+        100% {
+          background-position: -200% 0;
+        }
+      }
+
+      /* 暗色偏好 */
+      @media (prefers-color-scheme: dark) {
+        html,
+        body {
+          background: #0a0a0a;
+        }
+        #app-splash {
+          background-color: #0a0a0a;
+          background-image: radial-gradient(circle, #1f1f23 1px, transparent 1px);
+          color: #fafafa;
+        }
+        #app-splash::before {
+          background:
+            radial-gradient(ellipse 60% 40% at 50% 0%, rgba(47, 114, 255, 0.12), transparent 70%),
+            radial-gradient(ellipse 50% 40% at 50% 100%, rgba(47, 114, 255, 0.08), transparent 70%);
+        }
+        .app-splash__title {
+          color: #fafafa;
+        }
+        .app-splash__subtitle {
+          background-image: linear-gradient(
+            90deg,
+            #52525b 0%,
+            #52525b 42%,
+            #fafafa 50%,
+            #52525b 58%,
+            #52525b 100%
+          );
+          background-size: 200% 100%;
+          background-repeat: repeat-x;
+        }
+      }
+
+      /* 减动效偏好：关闭所有动画 */
+      @media (prefers-reduced-motion: reduce) {
+        .app-splash__logo,
+        .app-splash__subtitle {
+          animation: none;
+        }
+        .app-splash__subtitle {
+          color: #71717a;
+          background: none;
+          -webkit-text-fill-color: #71717a;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <div id="app-splash" aria-label="应用加载中" role="status">
+      <div class="app-splash__brand">
+        <img class="app-splash__logo" src="/src/assets/images/logo.png" alt="%VITE_APP_TITLE%" />
+        <h1 class="app-splash__title">%VITE_APP_TITLE%</h1>
+        <p class="app-splash__subtitle">正在加载工作台…</p>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,20 @@
+{
+  "Email": {
+    "Enabled": false,
+    "Host": "smtp.example.com",
+    "Port": 465,
+    "UserName": "",
+    "Password": "",
+    "FromAddress": "noreply@example.com",
+    "FromDisplayName": "Axis",
+    "UseSsl": true,
+    "TimeoutSeconds": 30
+  },
+  "Sms": {
+    "Enabled": false,
+    "Provider": "None",
+    "DefaultSignName": "",
+    "Settings": {
+    }
+  }
+}

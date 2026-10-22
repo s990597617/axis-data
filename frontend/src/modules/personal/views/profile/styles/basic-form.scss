@@ -1,0 +1,49 @@
+/* ============ 基础信息表单 ============ */
+
+.profile-section {
+  min-width: 0;
+  padding: 22px 28px 24px;
+}
+
+.profile-section__header {
+  margin-bottom: 16px;
+}
+
+.profile-section__title {
+  margin: 0;
+  color: var(--axis-text-color-1);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.profile-section__desc {
+  margin: 4px 0 0;
+  color: var(--axis-text-color-3);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.profile-form {
+  width: 100%;
+}
+
+.profile-form__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 20px;
+}
+
+.profile-form__actions {
+  margin-top: 4px;
+}
+
+@media (max-width: 960px) {
+  .profile-section {
+    padding: 18px 20px 20px;
+  }
+
+  .profile-form__grid {
+    grid-template-columns: 1fr;
+  }
+}

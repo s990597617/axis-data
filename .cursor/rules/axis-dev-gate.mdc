@@ -1,0 +1,12 @@
+---
+description: Axis 开发总闸：任何改动必须遵守业务开发规范
+alwaysApply: true
+---
+
+# 开发总闸（始终生效）
+
+- **唯一权威**：[`docs/业务开发规范.md`](docs/业务开发规范.md)。规则文件只是摘要；冲突以文档为准。
+- 改后端 / Host / Domain* → 遵守 `business-conventions`；改 `frontend/` → 遵守 `frontend-conventions`。
+- **先规范后代码**：不确定命名、分层、字典/枚举、事务时，先查文档对应章节，禁止自创第二套约定。
+- **硬边界**：Host 禁业务 SQL；Application **不得**引用 `Infrastructure.Data`；禁止跨模块挂载能力；不信任前端传的 `TenantId`。
+- 新增业务按模块竖切：`Dto/` + `Validators/` + `IXxxAppService` / `XxxAppService` + Endpoint **一文件一类**。

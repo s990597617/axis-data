@@ -1,0 +1,202 @@
+.code-rule-preview {
+  display: flex;
+  min-width: 0;
+  height: 100%;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--axis-border-color) 85%, transparent);
+  border-radius: var(--axis-border-radius, 6px);
+  background: var(--axis-card-color);
+
+  &.is-loading {
+    opacity: 0.82;
+  }
+
+  &__header {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px dashed color-mix(in srgb, var(--axis-border-color) 80%, transparent);
+  }
+
+  &__bar {
+    width: 3px;
+    height: 14px;
+    flex: 0 0 auto;
+    border-radius: 999px;
+    background: linear-gradient(
+      180deg,
+      var(--axis-primary-color),
+      color-mix(in srgb, var(--axis-primary-color) 45%, transparent)
+    );
+  }
+
+  &__icon {
+    width: 15px;
+    height: 15px;
+    flex: 0 0 auto;
+    color: color-mix(in srgb, var(--axis-primary-color) 80%, var(--axis-text-color-3));
+  }
+
+  &__heading {
+    min-width: 0;
+  }
+
+  &__title {
+    margin: 0;
+    color: var(--axis-text-color-1);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 22px;
+  }
+
+  &__hint {
+    margin: 2px 0 0;
+    color: var(--axis-text-color-3);
+    font-size: 12px;
+    line-height: 18px;
+  }
+
+  &__result {
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--axis-primary-color) 18%, var(--axis-border-color));
+    border-radius: var(--axis-border-radius, 6px);
+    background: color-mix(in srgb, var(--axis-primary-color) 4%, var(--axis-card-color));
+
+    &.is-empty .code-rule-preview__sample {
+      color: var(--axis-text-color-3);
+      font-size: 13px;
+      font-weight: 400;
+    }
+  }
+
+  &__result-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--axis-primary-color-soft, color-mix(in srgb, var(--axis-primary-color) 12%, var(--axis-card-color)));
+    color: var(--axis-text-color-1);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 20px;
+  }
+
+  &__sample {
+    margin: 0;
+    padding: 12px 14px;
+    color: var(--axis-primary-color);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    line-height: 26px;
+    word-break: break-all;
+  }
+
+  &__block {
+    min-width: 0;
+  }
+
+  &__label {
+    margin: 0 0 10px;
+    color: var(--axis-text-color-3);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 18px;
+  }
+
+  &__parse {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__sep {
+    color: var(--axis-text-color-3);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  &__seg {
+    min-width: 76px;
+    padding: 8px 10px;
+    border: 1px solid color-mix(in srgb, var(--axis-border-color) 85%, transparent);
+    border-radius: var(--axis-border-radius, 6px);
+    background: color-mix(in srgb, var(--axis-border-color) 18%, var(--axis-card-color));
+    text-align: center;
+
+    span {
+      display: block;
+      color: var(--axis-text-color-3);
+      font-size: 12px;
+      line-height: 18px;
+    }
+
+    strong {
+      display: block;
+      margin-top: 4px;
+      color: var(--axis-text-color-1);
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 20px;
+      word-break: break-all;
+    }
+  }
+
+  &__facts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    margin: 0;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--axis-border-color) 85%, transparent);
+    border-radius: var(--axis-border-radius, 6px);
+  }
+
+  &__fact {
+    min-width: 0;
+    padding: 10px 12px;
+    border-right: 1px solid color-mix(in srgb, var(--axis-border-color) 85%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--axis-border-color) 85%, transparent);
+
+    &:nth-child(2n) {
+      border-right: 0;
+    }
+
+    &:nth-child(n + 3) {
+      border-bottom: 0;
+    }
+
+    dt {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--axis-text-color-3);
+      font-size: 12px;
+      line-height: 18px;
+
+      .code-rule-preview__fact-icon {
+        font-size: 13px;
+      }
+    }
+
+    dd {
+      margin: 4px 0 0;
+      overflow: hidden;
+      color: var(--axis-text-color-1);
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 20px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "System": {
+    "WorkId": 1,
+    "CorsUrls": "*",
+    "EnableStrongPassword": false,
+    "PasswordStrengthValidation": "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d@$!%*#?&]{8,}$",
+    "PasswordStrengthValidationMsg": "密码至少 8 位，需包含字母和数字",
+    "PublicKey": "04F8E6ED53D420ED611C84D6C7E27B5F0DB07B899945E695A188E613C96F2CC803127FDBC3A39DFB06822EE71E87BC43598A4DD7B2B9DCF8193B2D14236EC647DF",
+    "PrivateKey": "F37ABD08BC07638917EBD43AFA0F6207911ADBC0F1DE26C6E0394FB6E14DAA73"
+  }
+}

@@ -1,0 +1,163 @@
+@use './panel';
+
+/* ============ 常用功能 ============ */
+
+.home-panel--shortcuts {
+  height: 100%;
+}
+
+.home-shortcuts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.home-shortcut {
+  --item-delay: 0s;
+  --shortcut-accent: var(--axis-primary-color);
+  position: relative;
+  display: flex;
+  gap: 13px;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 82px;
+  padding: 13px 14px;
+  overflow: hidden;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--axis-action-color) 66%, transparent);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  animation: home-shortcut-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--item-delay);
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+
+  &:nth-child(6n + 2) {
+    --shortcut-accent: #7c6ee6;
+  }
+
+  &:nth-child(6n + 3) {
+    --shortcut-accent: #e98b2a;
+  }
+
+  &:nth-child(6n + 4) {
+    --shortcut-accent: #25a7b8;
+  }
+
+  &:nth-child(6n + 5) {
+    --shortcut-accent: #df648c;
+  }
+
+  &:nth-child(6n + 6) {
+    --shortcut-accent: #2eaa74;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--shortcut-accent) 16%, transparent);
+    background: color-mix(in srgb, var(--shortcut-accent) 7%, var(--axis-card-color));
+
+    .home-shortcut__icon {
+      transform: scale(1.04);
+    }
+
+    .home-shortcut__arrow {
+      transform: translate(2px, -2px) rotate(45deg);
+      background: color-mix(in srgb, var(--shortcut-accent) 11%, var(--axis-card-color));
+      color: var(--shortcut-accent);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--shortcut-accent) 45%, transparent);
+    outline-offset: 2px;
+  }
+}
+
+.home-shortcut__icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--shortcut-accent) 11%, var(--axis-card-color));
+  color: var(--shortcut-accent);
+  font-size: 20px;
+  transition: transform 0.2s ease;
+}
+
+.home-shortcut__body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.home-shortcut__label {
+  overflow: hidden;
+  color: var(--axis-text-color-1);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-shortcut__desc {
+  overflow: hidden;
+  color: var(--axis-text-color-3);
+  font-size: 12px;
+  line-height: 1.45;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-shortcut__arrow {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 29px;
+  height: 29px;
+  border-radius: 9px;
+  color: var(--axis-text-color-3);
+  font-size: 12px;
+  transform: rotate(45deg);
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+@keyframes home-shortcut-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 720px) {
+  .home-shortcuts {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-shortcut {
+    animation: none;
+  }
+}
