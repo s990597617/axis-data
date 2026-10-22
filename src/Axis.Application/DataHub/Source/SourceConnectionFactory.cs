@@ -5,6 +5,7 @@ using Axis.Domain.Enums;
 using Axis.Infrastructure.Dependency.Annotations;
 using Axis.Infrastructure.Exceptions;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using SqlSugar;
 
 namespace Axis.Application.DataHub.Source;
@@ -12,6 +13,7 @@ namespace Axis.Application.DataHub.Source;
 /// <summary>
 /// 数据源连接解析与 SqlSugar / HTTP 连通能力（供元数据浏览与连通性测试复用）。
 /// </summary>
+[Injection(ServiceLifetime.Scoped, InjectAs.Self)]
 public sealed class SourceConnectionFactory(
     IConfiguration configuration,
     IHttpClientFactory httpClientFactory)
