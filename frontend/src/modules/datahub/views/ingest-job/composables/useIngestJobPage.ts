@@ -13,16 +13,23 @@ import {
   type AxisCrudResource
 } from '@/shared/components/axis-crud'
 import type { AxisTableColumn } from '@/shared/components/axis-table'
+import type { AxisFormOption } from '@/shared/components/axis-form'
+
+const strategyOptions: AxisFormOption[] = [
+  { label: '全量', value: 1 },
+  { label: '增量', value: 2 },
+  { label: '差异检测', value: 3 }
+]
 
 export function useIngestJobPage() {
   const columns: AxisTableColumn<IngestJobDto>[] = [
-    { key: 'datasetId', title: 'DatasetId' },
-    { key: 'name', title: 'Name', search: { field: 'keyword', placeholder: '关键字' } },
-    { key: 'code', title: 'Code' },
-    { key: 'strategy', title: 'Strategy' },
-    { key: 'cronExpression', title: 'CronExpression' },
-    { key: 'batchSize', title: 'BatchSize' },
-    { key: 'orderNo', title: 'OrderNo', width: 80 },
+    { key: 'name', title: '名称', search: { field: 'keyword', placeholder: '名称/编码' } },
+    { key: 'code', title: '编码' },
+    { key: 'datasetId', title: '数据集Id', width: 110 },
+    { key: 'strategy', title: '策略', dict: strategyOptions },
+    { key: 'cronExpression', title: 'Cron表达式' },
+    { key: 'batchSize', title: '批大小', width: 90 },
+    { key: 'orderNo', title: '排序', width: 80 },
     {
       key: 'status',
       title: '状态',
@@ -30,7 +37,7 @@ export function useIngestJobPage() {
       search: true,
       render: row => renderStatus(row.status)
     },
-    { key: 'remark', title: 'Remark', ellipsis: { tooltip: true } },
+    { key: 'remark', title: '备注', ellipsis: { tooltip: true } },
     { key: 'createdTime', title: '创建时间', render: row => formatDateTime(row.createdTime) }
   ]
 
@@ -42,7 +49,7 @@ export function useIngestJobPage() {
     formSubtitle: ({ editing, model }) =>
       editing
         ? `编辑采集任务「${String((model as Record<string, unknown>).name || '-')}」`
-        : '创建采集任务',
+        : '新增采集任务',
     actionColumn: {
       width: 120,
       maxInline: 2
@@ -56,55 +63,55 @@ export function useIngestJobPage() {
         fields: [
           {
             field: 'datasetId',
-            label: 'DatasetId',
+            label: '数据集Id',
             component: 'inputNumber',
             required: true,
             defaultValue: 0,
-            componentProps: { min: 0, max: 999999, placeholder: '请输入DatasetId' }
+            componentProps: { min: 1, placeholder: '请输入数据集 Id' }
           },
           {
             field: 'name',
-            label: 'Name',
+            label: '名称',
             required: true,
             defaultValue: '',
-            componentProps: { maxlength: 64, placeholder: '请输入Name' }
+            componentProps: { maxlength: 64, placeholder: '请输入名称' }
           },
           {
             field: 'code',
-            label: 'Code',
+            label: '编码',
             required: true,
             defaultValue: '',
-            componentProps: { maxlength: 64, placeholder: '请输入Code' }
+            componentProps: { maxlength: 64, placeholder: '请输入编码' }
           },
           {
             field: 'strategy',
-            label: 'Strategy',
-            required: false,
-            defaultValue: '',
-            componentProps: { maxlength: 64, placeholder: '请输入Strategy' }
+            label: '策略',
+            component: 'select',
+            options: strategyOptions,
+            required: true,
+            defaultValue: 1
           },
           {
             field: 'cronExpression',
-            label: 'CronExpression',
-            required: false,
+            label: 'Cron表达式',
             defaultValue: '',
-            componentProps: { maxlength: 64, placeholder: '请输入CronExpression' }
+            componentProps: { maxlength: 64, placeholder: '例如 0 0/10 * * * ?' }
           },
           {
             field: 'batchSize',
-            label: 'BatchSize',
+            label: '批大小',
             component: 'inputNumber',
             required: true,
-            defaultValue: 0,
-            componentProps: { min: 0, max: 999999, placeholder: '请输入BatchSize' }
+            defaultValue: 1000,
+            componentProps: { min: 1, max: 999999, placeholder: '请输入批大小' }
           },
           {
             field: 'orderNo',
-            label: 'OrderNo',
+            label: '排序',
             component: 'inputNumber',
             required: true,
             defaultValue: 100,
-            componentProps: { min: 0, max: 999999, placeholder: '请输入OrderNo' }
+            componentProps: { min: 0, max: 999999, placeholder: '请输入排序' }
           },
           {
             field: 'status',
@@ -116,7 +123,7 @@ export function useIngestJobPage() {
           },
           {
             field: 'remark',
-            label: 'Remark',
+            label: '备注',
             component: 'textarea',
             fullWidth: true,
             defaultValue: '',
@@ -124,9 +131,9 @@ export function useIngestJobPage() {
               maxlength: 256,
               showCount: true,
               rows: 2,
-              placeholder: '请输入Remark'
+              placeholder: '请输入备注'
             }
-          },
+          }
         ]
       }
     ],

@@ -15,12 +15,12 @@ public sealed class DataHub_IngestRunMenuSeed : ISqlSugarEntitySeedData<SysMenu>
     public IEnumerable<SysMenu> HasData()
     {
         yield return Item(10000006800004170, 0, MenuTypeEnum.Dir,
-            "DataHub", "DataHub", "/datahub",
-            icon: "ant-design:appstore-outlined", order: 50, isPlatform: false);
+            "数据中台", "DataHub", "/datahub",
+            icon: "ant-design:cloud-server-outlined", order: 50, isPlatform: false);
 
         yield return Item(10000006800234150, 10000006800004170, MenuTypeEnum.Menu,
             "采集运行", "DhIngestRun", "/datahub/ingest-run", "modules/datahub/views/ingest-run/index",
-            "datahub:ingest-run", "ant-design:table-outlined", 130, false);
+            "datahub:ingest-run", "ant-design:history-outlined", 130, false);
 
         yield return Item(10000006800234151, 10000006800234150, MenuTypeEnum.Btn,
             "查询采集运行", string.Empty, string.Empty,

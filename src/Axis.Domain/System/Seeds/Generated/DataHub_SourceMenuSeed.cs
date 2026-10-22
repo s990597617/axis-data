@@ -15,12 +15,12 @@ public sealed class DataHub_SourceMenuSeed : ISqlSugarEntitySeedData<SysMenu>
     public IEnumerable<SysMenu> HasData()
     {
         yield return Item(10000006800004170, 0, MenuTypeEnum.Dir,
-            "DataHub", "DataHub", "/datahub",
-            icon: "ant-design:appstore-outlined", order: 50, isPlatform: false);
+            "数据中台", "DataHub", "/datahub",
+            icon: "ant-design:cloud-server-outlined", order: 50, isPlatform: false);
 
         yield return Item(10000006800241590, 10000006800004170, MenuTypeEnum.Menu,
             "数据源", "DhSource", "/datahub/source", "modules/datahub/views/source/index",
-            "datahub:source", "ant-design:table-outlined", 100, false);
+            "datahub:source", "ant-design:database-outlined", 100, false);
 
         yield return Item(10000006800241591, 10000006800241590, MenuTypeEnum.Btn,
             "查询数据源", string.Empty, string.Empty,

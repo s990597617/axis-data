@@ -15,8 +15,8 @@ public sealed class DataHub_DatasetMenuSeed : ISqlSugarEntitySeedData<SysMenu>
     public IEnumerable<SysMenu> HasData()
     {
         yield return Item(10000006800004170, 0, MenuTypeEnum.Dir,
-            "DataHub", "DataHub", "/datahub",
-            icon: "ant-design:appstore-outlined", order: 50, isPlatform: false);
+            "数据中台", "DataHub", "/datahub",
+            icon: "ant-design:cloud-server-outlined", order: 50, isPlatform: false);
 
         yield return Item(10000006800221090, 10000006800004170, MenuTypeEnum.Menu,
             "数据集", "DhDataset", "/datahub/dataset", "modules/datahub/views/dataset/index",

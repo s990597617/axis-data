@@ -13,15 +13,23 @@ import {
   type AxisCrudResource
 } from '@/shared/components/axis-crud'
 import type { AxisTableColumn } from '@/shared/components/axis-table'
+import type { AxisFormOption } from '@/shared/components/axis-form'
+
+const sourceTypeOptions: AxisFormOption[] = [
+  { label: 'SQL Server', value: 1 },
+  { label: 'PostgreSQL', value: 2 },
+  { label: 'MySQL', value: 3 },
+  { label: 'HTTP', value: 4 }
+]
 
 export function useSourcePage() {
   const columns: AxisTableColumn<SourceDto>[] = [
-    { key: 'name', title: 'Name', search: { field: 'keyword', placeholder: '关键字' } },
-    { key: 'code', title: 'Code' },
-    { key: 'sourceType', title: 'SourceType' },
-    { key: 'secretRef', title: 'SecretRef', ellipsis: { tooltip: true } },
-    { key: 'isReadOnly', title: 'IsReadOnly' },
-    { key: 'orderNo', title: 'OrderNo', width: 80 },
+    { key: 'name', title: '名称', search: { field: 'keyword', placeholder: '名称/编码' } },
+    { key: 'code', title: '编码' },
+    { key: 'sourceType', title: '数据源类型', dict: sourceTypeOptions },
+    { key: 'secretRef', title: '密钥引用', ellipsis: { tooltip: true } },
+    { key: 'isReadOnly', title: '只读' },
+    { key: 'orderNo', title: '排序', width: 80 },
     {
       key: 'status',
       title: '状态',
@@ -29,7 +37,7 @@ export function useSourcePage() {
       search: true,
       render: row => renderStatus(row.status)
     },
-    { key: 'remark', title: 'Remark', ellipsis: { tooltip: true } },
+    { key: 'remark', title: '备注', ellipsis: { tooltip: true } },
     { key: 'createdTime', title: '创建时间', render: row => formatDateTime(row.createdTime) }
   ]
 
@@ -41,7 +49,7 @@ export function useSourcePage() {
     formSubtitle: ({ editing, model }) =>
       editing
         ? `编辑数据源「${String((model as Record<string, unknown>).name || '-')}」`
-        : '创建数据源',
+        : '新增数据源',
     actionColumn: {
       width: 120,
       maxInline: 2
@@ -55,28 +63,29 @@ export function useSourcePage() {
         fields: [
           {
             field: 'name',
-            label: 'Name',
+            label: '名称',
             required: true,
             defaultValue: '',
-            componentProps: { maxlength: 64, placeholder: '请输入Name' }
+            componentProps: { maxlength: 64, placeholder: '请输入名称' }
           },
           {
             field: 'code',
-            label: 'Code',
+            label: '编码',
             required: true,
             defaultValue: '',
-            componentProps: { maxlength: 64, placeholder: '请输入Code' }
+            componentProps: { maxlength: 64, placeholder: '请输入编码' }
           },
           {
             field: 'sourceType',
-            label: 'SourceType',
-            required: false,
-            defaultValue: '',
-            componentProps: { maxlength: 64, placeholder: '请输入SourceType' }
+            label: '数据源类型',
+            component: 'select',
+            options: sourceTypeOptions,
+            required: true,
+            defaultValue: 1
           },
           {
             field: 'secretRef',
-            label: 'SecretRef',
+            label: '密钥引用',
             component: 'textarea',
             fullWidth: true,
             defaultValue: '',
@@ -84,22 +93,22 @@ export function useSourcePage() {
               maxlength: 128,
               showCount: true,
               rows: 2,
-              placeholder: '请输入SecretRef'
+              placeholder: '密钥/连接配置引用，勿填明文连接串'
             }
           },
           {
             field: 'isReadOnly',
-            label: 'IsReadOnly',
+            label: '只读',
             component: 'switch',
-            defaultValue: false
+            defaultValue: true
           },
           {
             field: 'orderNo',
-            label: 'OrderNo',
+            label: '排序',
             component: 'inputNumber',
             required: true,
             defaultValue: 100,
-            componentProps: { min: 0, max: 999999, placeholder: '请输入OrderNo' }
+            componentProps: { min: 0, max: 999999, placeholder: '请输入排序' }
           },
           {
             field: 'status',
@@ -111,7 +120,7 @@ export function useSourcePage() {
           },
           {
             field: 'remark',
-            label: 'Remark',
+            label: '备注',
             component: 'textarea',
             fullWidth: true,
             defaultValue: '',
@@ -119,9 +128,9 @@ export function useSourcePage() {
               maxlength: 256,
               showCount: true,
               rows: 2,
-              placeholder: '请输入Remark'
+              placeholder: '请输入备注'
             }
-          },
+          }
         ]
       }
     ],

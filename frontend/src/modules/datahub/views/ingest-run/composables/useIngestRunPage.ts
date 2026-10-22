@@ -13,20 +13,29 @@ import {
   type AxisCrudResource
 } from '@/shared/components/axis-crud'
 import type { AxisTableColumn } from '@/shared/components/axis-table'
+import type { AxisFormOption } from '@/shared/components/axis-form'
+
+const runStatusOptions: AxisFormOption[] = [
+  { label: '待执行', value: 1 },
+  { label: '运行中', value: 2 },
+  { label: '成功', value: 3 },
+  { label: '失败', value: 4 },
+  { label: '已取消', value: 5 }
+]
 
 export function useIngestRunPage() {
   const columns: AxisTableColumn<IngestRunDto>[] = [
-    { key: 'jobId', title: 'JobId' },
-    { key: 'name', title: 'Name', search: { field: 'keyword', placeholder: '关键字' }, ellipsis: { tooltip: true } },
-    { key: 'code', title: 'Code' },
-    { key: 'runStatus', title: 'RunStatus' },
-    { key: 'startedTime', title: 'StartedTime', render: row => formatDateTime(row.startedTime) },
-    { key: 'finishedTime', title: 'FinishedTime', render: row => formatDateTime(row.finishedTime) },
-    { key: 'rowCountRead', title: 'RowCountRead' },
-    { key: 'rowCountChanged', title: 'RowCountChanged' },
-    { key: 'errorMessage', title: 'ErrorMessage', ellipsis: { tooltip: true } },
-    { key: 'watermark', title: 'Watermark', ellipsis: { tooltip: true } },
-    { key: 'orderNo', title: 'OrderNo', width: 80 },
+    { key: 'name', title: '名称', search: { field: 'keyword', placeholder: '名称/编码' } },
+    { key: 'code', title: '编码' },
+    { key: 'jobId', title: '任务Id', width: 100 },
+    { key: 'runStatus', title: '运行状态', dict: runStatusOptions, search: true },
+    { key: 'startedTime', title: '开始时间', render: row => formatDateTime(row.startedTime) },
+    { key: 'finishedTime', title: '结束时间', render: row => formatDateTime(row.finishedTime) },
+    { key: 'rowCountRead', title: '读取行数', width: 100 },
+    { key: 'rowCountChanged', title: '变更行数', width: 100 },
+    { key: 'watermark', title: '水位线', ellipsis: { tooltip: true } },
+    { key: 'errorMessage', title: '错误信息', ellipsis: { tooltip: true } },
+    { key: 'orderNo', title: '排序', width: 80 },
     {
       key: 'status',
       title: '状态',
@@ -34,7 +43,7 @@ export function useIngestRunPage() {
       search: true,
       render: row => renderStatus(row.status)
     },
-    { key: 'remark', title: 'Remark', ellipsis: { tooltip: true } },
+    { key: 'remark', title: '备注', ellipsis: { tooltip: true } },
     { key: 'createdTime', title: '创建时间', render: row => formatDateTime(row.createdTime) }
   ]
 
@@ -46,7 +55,7 @@ export function useIngestRunPage() {
     formSubtitle: ({ editing, model }) =>
       editing
         ? `编辑采集运行「${String((model as Record<string, unknown>).name || '-')}」`
-        : '创建采集运行',
+        : '新增采集运行',
     actionColumn: {
       width: 120,
       maxInline: 2
@@ -60,72 +69,69 @@ export function useIngestRunPage() {
         fields: [
           {
             field: 'jobId',
-            label: 'JobId',
+            label: '任务Id',
             component: 'inputNumber',
             required: true,
             defaultValue: 0,
-            componentProps: { min: 0, max: 999999, placeholder: '请输入JobId' }
+            componentProps: { min: 1, placeholder: '请输入采集任务 Id' }
           },
           {
             field: 'name',
-            label: 'Name',
-            component: 'textarea',
-            fullWidth: true,
+            label: '名称',
+            required: true,
             defaultValue: '',
-            componentProps: {
-              maxlength: 128,
-              showCount: true,
-              rows: 2,
-              placeholder: '请输入Name'
-            }
+            componentProps: { maxlength: 128, placeholder: '请输入名称' }
           },
           {
             field: 'code',
-            label: 'Code',
+            label: '编码',
             required: true,
             defaultValue: '',
-            componentProps: { maxlength: 64, placeholder: '请输入Code' }
+            componentProps: { maxlength: 64, placeholder: '请输入编码' }
           },
           {
             field: 'runStatus',
-            label: 'RunStatus',
-            required: false,
-            defaultValue: '',
-            componentProps: { maxlength: 64, placeholder: '请输入RunStatus' }
+            label: '运行状态',
+            component: 'select',
+            options: runStatusOptions,
+            required: true,
+            defaultValue: 1
           },
           {
             field: 'startedTime',
-            label: 'StartedTime',
-            required: false,
-            defaultValue: '',
-            componentProps: { maxlength: 64, placeholder: '请输入StartedTime' }
+            label: '开始时间',
+            defaultValue: null,
+            componentProps: { placeholder: '可选，ISO 时间' }
           },
           {
             field: 'finishedTime',
-            label: 'FinishedTime',
-            required: false,
-            defaultValue: '',
-            componentProps: { maxlength: 64, placeholder: '请输入FinishedTime' }
+            label: '结束时间',
+            defaultValue: null,
+            componentProps: { placeholder: '可选，ISO 时间' }
           },
           {
             field: 'rowCountRead',
-            label: 'RowCountRead',
+            label: '读取行数',
             component: 'inputNumber',
-            required: true,
             defaultValue: 0,
-            componentProps: { min: 0, max: 999999, placeholder: '请输入RowCountRead' }
+            componentProps: { min: 0 }
           },
           {
             field: 'rowCountChanged',
-            label: 'RowCountChanged',
+            label: '变更行数',
             component: 'inputNumber',
-            required: true,
             defaultValue: 0,
-            componentProps: { min: 0, max: 999999, placeholder: '请输入RowCountChanged' }
+            componentProps: { min: 0 }
+          },
+          {
+            field: 'watermark',
+            label: '水位线',
+            defaultValue: '',
+            componentProps: { maxlength: 512, placeholder: '增量水位' }
           },
           {
             field: 'errorMessage',
-            label: 'ErrorMessage',
+            label: '错误信息',
             component: 'textarea',
             fullWidth: true,
             defaultValue: '',
@@ -133,29 +139,16 @@ export function useIngestRunPage() {
               maxlength: 1024,
               showCount: true,
               rows: 2,
-              placeholder: '请输入ErrorMessage'
-            }
-          },
-          {
-            field: 'watermark',
-            label: 'Watermark',
-            component: 'textarea',
-            fullWidth: true,
-            defaultValue: '',
-            componentProps: {
-              maxlength: 512,
-              showCount: true,
-              rows: 2,
-              placeholder: '请输入Watermark'
+              placeholder: '失败时填写'
             }
           },
           {
             field: 'orderNo',
-            label: 'OrderNo',
+            label: '排序',
             component: 'inputNumber',
             required: true,
             defaultValue: 100,
-            componentProps: { min: 0, max: 999999, placeholder: '请输入OrderNo' }
+            componentProps: { min: 0, max: 999999, placeholder: '请输入排序' }
           },
           {
             field: 'status',
@@ -167,7 +160,7 @@ export function useIngestRunPage() {
           },
           {
             field: 'remark',
-            label: 'Remark',
+            label: '备注',
             component: 'textarea',
             fullWidth: true,
             defaultValue: '',
@@ -175,9 +168,9 @@ export function useIngestRunPage() {
               maxlength: 256,
               showCount: true,
               rows: 2,
-              placeholder: '请输入Remark'
+              placeholder: '请输入备注'
             }
-          },
+          }
         ]
       }
     ],
