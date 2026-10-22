@@ -4,5 +4,9 @@
     "DefaultBatchSize": 1000,
     "DiffDetectEnabled": false,
     "AllowPlaintextSecrets": false
+  },
+  "ConnectionStrings": {
+    "U8Readonly": "",
+    "ErpReadonly": ""
   }
 }
