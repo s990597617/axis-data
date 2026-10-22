@@ -34,6 +34,9 @@ public sealed class DataHub_IngestJobMenuSeed : ISqlSugarEntitySeedData<SysMenu>
         yield return Item(10000006800419224, 10000006800419220, MenuTypeEnum.Btn,
             "删除采集任务", string.Empty, string.Empty,
             permission: DataHubPermissionCodes.IngestJob.Delete, order: 4, isPlatform: false);
+        yield return Item(10000006800419225, 10000006800419220, MenuTypeEnum.Btn,
+            "执行采集任务", string.Empty, string.Empty,
+            permission: DataHubPermissionCodes.IngestJob.Run, order: 5, isPlatform: false);
     }
 
     private static SysMenu Item(

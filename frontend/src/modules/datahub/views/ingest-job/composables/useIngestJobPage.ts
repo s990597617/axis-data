@@ -3,11 +3,13 @@ import {
   createIngestJob,
   deleteIngestJob,
   getIngestJobPage,
+  runIngestJob,
   updateIngestJob
 } from '@/modules/datahub/api/ingest-job'
 import { listDatasetLookup, type DataHubLookupItem } from '@/modules/datahub/api/dataset'
 import { dataHubPermissionCodes } from '@/modules/datahub/permissions/codes'
 import {
+  AxisCrudPage,
   formatDateTime,
   renderStatus,
   statusOptions,
@@ -15,7 +17,10 @@ import {
 } from '@/shared/components/axis-crud'
 import type { AxisTableColumn } from '@/shared/components/axis-table'
 import type { AxisFormFieldContext, AxisFormOption } from '@/shared/components/axis-form'
+import { tryRequest } from '@/shared/http'
+import { useDialog, useMessage } from 'naive-ui'
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 const strategyOptions: AxisFormOption[] = [
   { label: '全量', value: 1 },
@@ -55,6 +60,10 @@ function asIdString(value: unknown): string {
 }
 
 export function useIngestJobPage() {
+  const router = useRouter()
+  const dialog = useDialog()
+  const message = useMessage()
+  const pageRef = ref<InstanceType<typeof AxisCrudPage> | null>(null)
   const datasetOptions = ref<AxisFormOption[]>([])
 
   async function loadDatasetOptions(currentId?: unknown) {
@@ -113,9 +122,20 @@ export function useIngestJobPage() {
         ? `编辑采集任务「${String((model as Record<string, unknown>).name || '-')}」`
         : '新建采集任务',
     actionColumn: {
-      width: 120,
+      width: 200,
       maxInline: 2
     },
+    extraActions: [
+      {
+        key: 'run',
+        label: '立即执行',
+        icon: 'ant-design:play-circle-outlined',
+        type: 'primary',
+        permissions: [dataHubPermissionCodes.ingestJob.run],
+        ifShow: row => (row as IngestJobDto).status === 1,
+        onClick: row => handleRun(row as IngestJobDto)
+      }
+    ],
     formSections: [
       {
         key: 'basic',
@@ -262,5 +282,37 @@ export function useIngestJobPage() {
     remove: deleteIngestJob
   }
 
-  return { resource }
+  async function handleRun(row: IngestJobDto) {
+    dialog.warning({
+      title: '立即执行',
+      content: `确定立即执行采集任务「${row.name}」？将创建一条采集运行记录并从源端读取一批数据。`,
+      positiveText: '执行',
+      negativeText: '取消',
+      onPositiveClick: async () => {
+        const [result, error] = await tryRequest(runIngestJob(row.id))
+        if (error) return
+        const payload = result!
+        if (payload.runStatus === 4) {
+          message.error(payload.errorMessage || '采集执行失败')
+        } else {
+          message.success(`采集完成，读取 ${payload.rowCountRead} 行`)
+        }
+        await pageRef.value?.reload()
+        dialog.info({
+          title: '查看运行记录',
+          content: '是否跳转到「采集运行」查看本次记录？',
+          positiveText: '去查看',
+          negativeText: '留在此页',
+          onPositiveClick: () => {
+            void router.push({
+              path: '/datahub/ingest-run',
+              query: { jobId: row.id }
+            })
+          }
+        })
+      }
+    })
+  }
+
+  return { resource, pageRef }
 }

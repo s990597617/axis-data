@@ -27,4 +27,9 @@ public sealed class IngestRunPageQuery
     /// </summary>
     public StatusEnum? Status { get; set; }
 
+    /// <summary>
+    /// 采集任务 Id；为空表示不按任务过滤。
+    /// </summary>
+    public long? JobId { get; set; }
+
 }

@@ -6,7 +6,10 @@
 export const dataHubPermissionCodes = {
   source: createCrudPermissions('source'),
   dataset: createCrudPermissions('dataset'),
-  ingestJob: createCrudPermissions('ingest-job'),
+  ingestJob: {
+    ...createCrudPermissions('ingest-job'),
+    run: 'datahub:ingest-job:run'
+  },
   ingestRun: createCrudPermissions('ingest-run'),
 }
 

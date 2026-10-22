@@ -52,3 +52,18 @@ export function updateIngestJob(id: string, data: SaveIngestJobInput) {
 export function deleteIngestJob(id: string) {
   return request.delete<void>({ url: `/datahub/ingest-job/${id}` })
 }
+
+/** 手动触发采集后的运行摘要。 */
+export interface TriggerIngestJobResult {
+  runId: string
+  runCode: string
+  runStatus: number
+  rowCountRead: number
+  rowCountChanged: number
+  watermark?: string
+  errorMessage?: string
+}
+
+export function runIngestJob(id: string) {
+  return request.post<TriggerIngestJobResult>({ url: `/datahub/ingest-job/${id}/run` })
+}
