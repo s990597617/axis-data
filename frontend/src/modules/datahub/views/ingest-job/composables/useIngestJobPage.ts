@@ -18,7 +18,7 @@ import {
 import type { AxisTableColumn } from '@/shared/components/axis-table'
 import type { AxisFormFieldContext, AxisFormOption } from '@/shared/components/axis-form'
 import { tryRequest } from '@/shared/http'
-import { useDialog, useMessage } from 'naive-ui'
+import { dialog, message } from '@/shared/utils/message'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -61,8 +61,6 @@ function asIdString(value: unknown): string {
 
 export function useIngestJobPage() {
   const router = useRouter()
-  const dialog = useDialog()
-  const message = useMessage()
   const pageRef = ref<InstanceType<typeof AxisCrudPage> | null>(null)
   const datasetOptions = ref<AxisFormOption[]>([])
 
