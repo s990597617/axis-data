@@ -21,6 +21,6 @@ public sealed class RunIngestJobEndpoint(IIngestJobAppService service)
             .RequirePermission(DataHubPermissionCodes.IngestJob.Run));
     }
 
-    public override async Task<TriggerIngestJobResultDto> HandleAsync(IngestJobIdRequest request, CancellationToken ct)
-        => await service.TriggerRunAsync(request.Id, ct);
+    public override async Task HandleAsync(IngestJobIdRequest request, CancellationToken ct)
+        => Response = await service.TriggerRunAsync(request.Id, ct);
 }

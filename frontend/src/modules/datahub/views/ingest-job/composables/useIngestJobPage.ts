@@ -290,7 +290,12 @@ export function useIngestJobPage() {
       onPositiveClick: async () => {
         const [result, error] = await tryRequest(runIngestJob(row.id))
         if (error) return
-        const payload = result!
+        const payload = result
+        if (!payload) {
+          message.error('采集执行完成，但未返回运行结果')
+          await pageRef.value?.reload()
+          return
+        }
         if (payload.runStatus === 4) {
           message.error(payload.errorMessage || '采集执行失败')
         } else {
