@@ -5,6 +5,7 @@ import {
   getIngestRunPage,
   updateIngestRun
 } from '@/modules/datahub/api/ingest-run'
+import { listIngestJobLookup, type DataHubLookupItem } from '@/modules/datahub/api/ingest-job'
 import { dataHubPermissionCodes } from '@/modules/datahub/permissions/codes'
 import {
   formatDateTime,
@@ -14,6 +15,7 @@ import {
 } from '@/shared/components/axis-crud'
 import type { AxisTableColumn } from '@/shared/components/axis-table'
 import type { AxisFormOption } from '@/shared/components/axis-form'
+import { ref } from 'vue'
 
 const runStatusOptions: AxisFormOption[] = [
   { label: '待执行', value: 1 },
@@ -23,19 +25,52 @@ const runStatusOptions: AxisFormOption[] = [
   { label: '已取消', value: 5 }
 ]
 
+function toLookupOptions(items: DataHubLookupItem[] | undefined): AxisFormOption[] {
+  return (items ?? []).map(item => ({ label: item.label, value: item.value }))
+}
+
+function asIdString(value: unknown): string {
+  if (value == null || value === '') return ''
+  return String(value)
+}
+
 export function useIngestRunPage() {
+  const jobOptions = ref<AxisFormOption[]>([])
+
+  async function loadJobOptions(currentId?: unknown) {
+    try {
+      jobOptions.value = toLookupOptions(await listIngestJobLookup())
+    } catch {
+      jobOptions.value = []
+    }
+    const id = asIdString(currentId)
+    if (id && !jobOptions.value.some(o => String(o.value) === id)) {
+      jobOptions.value = [{ label: `当前采集任务（${id}）`, value: id }, ...jobOptions.value]
+    }
+  }
+
   const columns: AxisTableColumn<IngestRunDto>[] = [
     { key: 'name', title: '名称', search: { field: 'keyword', placeholder: '名称/编码' } },
     { key: 'code', title: '编码' },
-    { key: 'jobId', title: '任务Id', width: 100 },
-    { key: 'runStatus', title: '运行状态', dict: runStatusOptions, search: true },
-    { key: 'startedTime', title: '开始时间', render: row => formatDateTime(row.startedTime) },
-    { key: 'finishedTime', title: '结束时间', render: row => formatDateTime(row.finishedTime) },
+    {
+      key: 'jobName',
+      title: '采集任务',
+      render: row => row.jobName || row.jobCode || asIdString(row.jobId) || '-'
+    },
+    { key: 'runStatus', title: '运行状态', dict: runStatusOptions },
+    {
+      key: 'startedTime',
+      title: '开始时间',
+      render: row => formatDateTime(row.startedTime)
+    },
+    {
+      key: 'finishedTime',
+      title: '结束时间',
+      render: row => formatDateTime(row.finishedTime)
+    },
     { key: 'rowCountRead', title: '读取行数', width: 100 },
     { key: 'rowCountChanged', title: '变更行数', width: 100 },
     { key: 'watermark', title: '水位线', ellipsis: { tooltip: true } },
-    { key: 'errorMessage', title: '错误信息', ellipsis: { tooltip: true } },
-    { key: 'orderNo', title: '排序', width: 80 },
     {
       key: 'status',
       title: '状态',
@@ -43,7 +78,6 @@ export function useIngestRunPage() {
       search: true,
       render: row => renderStatus(row.status)
     },
-    { key: 'remark', title: '备注', ellipsis: { tooltip: true } },
     { key: 'createdTime', title: '创建时间', render: row => formatDateTime(row.createdTime) }
   ]
 
@@ -55,7 +89,7 @@ export function useIngestRunPage() {
     formSubtitle: ({ editing, model }) =>
       editing
         ? `编辑采集运行「${String((model as Record<string, unknown>).name || '-')}」`
-        : '新增采集运行',
+        : '新建采集运行',
     actionColumn: {
       width: 120,
       maxInline: 2
@@ -63,31 +97,40 @@ export function useIngestRunPage() {
     formSections: [
       {
         key: 'basic',
-        title: '基础信息',
+        title: '基本信息',
         icon: 'ant-design:idcard-outlined',
         columns: 2,
         fields: [
           {
             field: 'jobId',
-            label: '任务Id',
-            component: 'inputNumber',
+            label: '采集任务',
+            component: 'select',
             required: true,
-            defaultValue: 0,
-            componentProps: { min: 1, placeholder: '请输入采集任务 Id' }
+            defaultValue: null,
+            options: () => jobOptions.value,
+            componentProps: {
+              filterable: true,
+              clearable: true,
+              placeholder: '请选择采集任务'
+            }
           },
           {
             field: 'name',
             label: '名称',
-            required: true,
             defaultValue: '',
-            componentProps: { maxlength: 128, placeholder: '请输入名称' }
+            componentProps: {
+              maxlength: 128,
+              placeholder: '可留空，新建时按任务自动生成'
+            }
           },
           {
             field: 'code',
             label: '编码',
-            required: true,
             defaultValue: '',
-            componentProps: { maxlength: 64, placeholder: '请输入编码' }
+            componentProps: {
+              maxlength: 64,
+              placeholder: '可留空，新建时按任务自动生成'
+            }
           },
           {
             field: 'runStatus',
@@ -100,14 +143,14 @@ export function useIngestRunPage() {
           {
             field: 'startedTime',
             label: '开始时间',
-            defaultValue: null,
-            componentProps: { placeholder: '可选，ISO 时间' }
+            defaultValue: '',
+            componentProps: { placeholder: 'YYYY-MM-DD HH:mm:ss' }
           },
           {
             field: 'finishedTime',
             label: '结束时间',
-            defaultValue: null,
-            componentProps: { placeholder: '可选，ISO 时间' }
+            defaultValue: '',
+            componentProps: { placeholder: 'YYYY-MM-DD HH:mm:ss' }
           },
           {
             field: 'rowCountRead',
@@ -135,12 +178,8 @@ export function useIngestRunPage() {
             component: 'textarea',
             fullWidth: true,
             defaultValue: '',
-            componentProps: {
-              maxlength: 1024,
-              showCount: true,
-              rows: 2,
-              placeholder: '失败时填写'
-            }
+            ifShow: model => Number(model.runStatus) === 4,
+            componentProps: { rows: 2, maxlength: 1024, placeholder: '失败时填写' }
           },
           {
             field: 'orderNo',
@@ -148,7 +187,7 @@ export function useIngestRunPage() {
             component: 'inputNumber',
             required: true,
             defaultValue: 100,
-            componentProps: { min: 0, max: 999999, placeholder: '请输入排序' }
+            componentProps: { min: 0, max: 999999 }
           },
           {
             field: 'status',
@@ -174,6 +213,16 @@ export function useIngestRunPage() {
         ]
       }
     ],
+    onFormOpen: async ({ model }) => {
+      model.jobId = asIdString(model.jobId) || null
+      await loadJobOptions(model.jobId)
+    },
+    beforeSubmit: data => {
+      data.jobId = asIdString(data.jobId)
+      if (!data.jobId) throw new Error('请选择采集任务')
+      if (data.name === '') data.name = undefined
+      if (data.code === '') data.code = undefined
+    },
     request: getIngestRunPage,
     create: data => createIngestRun(data as unknown as SaveIngestRunInput),
     update: (id, data) => updateIngestRun(id, data as unknown as SaveIngestRunInput),

@@ -1,9 +1,17 @@
 import { request } from '@/shared/http'
 
+/** 下拉选项。 */
+export interface DataHubLookupItem {
+  value: string
+  label: string
+}
+
 /** 数据集列表数据。 */
 export interface DatasetDto extends Record<string, unknown> {
   id: string
   sourceId?: string
+  sourceName?: string
+  sourceCode?: string
   name: string
   code: string
   objectType?: number
@@ -20,7 +28,7 @@ export interface DatasetDto extends Record<string, unknown> {
 
 /** 数据集保存数据。 */
 export interface SaveDatasetInput {
-  sourceId?: string
+  sourceId: string
   name: string
   code: string
   objectType?: number
@@ -36,6 +44,10 @@ export interface SaveDatasetInput {
 
 export function getDatasetPage(params: Record<string, unknown>) {
   return request.get<unknown>({ url: '/datahub/dataset/page', params })
+}
+
+export function listDatasetLookup() {
+  return request.get<DataHubLookupItem[]>({ url: '/datahub/dataset/lookup' })
 }
 
 export function createDataset(data: SaveDatasetInput) {

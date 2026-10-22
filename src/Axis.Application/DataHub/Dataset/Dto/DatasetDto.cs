@@ -18,6 +18,16 @@ public sealed class DatasetDto
     public long SourceId { get; set; }
 
     /// <summary>
+    /// 数据源名称。
+    /// </summary>
+    public string? SourceName { get; set; }
+
+    /// <summary>
+    /// 数据源编码。
+    /// </summary>
+    public string? SourceCode { get; set; }
+
+    /// <summary>
     /// Name。
     /// </summary>
     public string Name { get; set; } = null!;

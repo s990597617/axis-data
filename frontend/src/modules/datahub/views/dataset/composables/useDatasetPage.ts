@@ -1,10 +1,11 @@
-import type { DatasetDto, SaveDatasetInput } from '@/modules/datahub/api/dataset'
+import type { DatasetDto, SaveDatasetInput, DataHubLookupItem } from '@/modules/datahub/api/dataset'
 import {
   createDataset,
   deleteDataset,
   getDatasetPage,
   updateDataset
 } from '@/modules/datahub/api/dataset'
+import { listSourceLookup } from '@/modules/datahub/api/source'
 import { dataHubPermissionCodes } from '@/modules/datahub/permissions/codes'
 import {
   formatDateTime,
@@ -14,6 +15,7 @@ import {
 } from '@/shared/components/axis-crud'
 import type { AxisTableColumn } from '@/shared/components/axis-table'
 import type { AxisFormOption } from '@/shared/components/axis-form'
+import { ref } from 'vue'
 
 const objectTypeOptions: AxisFormOption[] = [
   { label: '表', value: 1 },
@@ -27,11 +29,38 @@ const updateStrategyOptions: AxisFormOption[] = [
   { label: '差异检测', value: 3 }
 ]
 
+function toLookupOptions(items: DataHubLookupItem[] | undefined): AxisFormOption[] {
+  return (items ?? []).map(item => ({ label: item.label, value: item.value }))
+}
+
+function asIdString(value: unknown): string {
+  if (value == null || value === '') return ''
+  return String(value)
+}
+
 export function useDatasetPage() {
+  const sourceOptions = ref<AxisFormOption[]>([])
+
+  async function loadSourceOptions(currentId?: unknown) {
+    try {
+      sourceOptions.value = toLookupOptions(await listSourceLookup())
+    } catch {
+      sourceOptions.value = []
+    }
+    const id = asIdString(currentId)
+    if (id && !sourceOptions.value.some(o => String(o.value) === id)) {
+      sourceOptions.value = [{ label: `当前数据源（${id}）`, value: id }, ...sourceOptions.value]
+    }
+  }
+
   const columns: AxisTableColumn<DatasetDto>[] = [
     { key: 'name', title: '名称', search: { field: 'keyword', placeholder: '名称/编码' } },
     { key: 'code', title: '编码' },
-    { key: 'sourceId', title: '数据源Id', width: 110 },
+    {
+      key: 'sourceName',
+      title: '数据源',
+      render: row => row.sourceName || row.sourceCode || asIdString(row.sourceId) || '-'
+    },
     { key: 'objectType', title: '对象类型', dict: objectTypeOptions },
     { key: 'objectName', title: '对象名', ellipsis: { tooltip: true } },
     { key: 'primaryKeyFields', title: '主键字段', ellipsis: { tooltip: true } },
@@ -57,7 +86,7 @@ export function useDatasetPage() {
     formSubtitle: ({ editing, model }) =>
       editing
         ? `编辑数据集「${String((model as Record<string, unknown>).name || '-')}」`
-        : '新增数据集',
+        : '新建数据集',
     actionColumn: {
       width: 120,
       maxInline: 2
@@ -65,17 +94,22 @@ export function useDatasetPage() {
     formSections: [
       {
         key: 'basic',
-        title: '基础信息',
+        title: '基本信息',
         icon: 'ant-design:idcard-outlined',
         columns: 2,
         fields: [
           {
             field: 'sourceId',
-            label: '数据源Id',
-            component: 'inputNumber',
+            label: '数据源',
+            component: 'select',
             required: true,
-            defaultValue: 0,
-            componentProps: { min: 1, placeholder: '请输入数据源 Id' }
+            defaultValue: null,
+            options: () => sourceOptions.value,
+            componentProps: {
+              filterable: true,
+              clearable: true,
+              placeholder: '请选择数据源'
+            }
           },
           {
             field: 'name',
@@ -103,7 +137,8 @@ export function useDatasetPage() {
             field: 'objectName',
             label: '对象名',
             defaultValue: '',
-            componentProps: { maxlength: 256, placeholder: '表名/视图名' }
+            ifShow: model => Number(model.objectType) !== 3,
+            componentProps: { maxlength: 256, placeholder: '表名或视图名' }
           },
           {
             field: 'customSql',
@@ -111,7 +146,8 @@ export function useDatasetPage() {
             component: 'textarea',
             fullWidth: true,
             defaultValue: '',
-            componentProps: { rows: 3, placeholder: '对象类型为查询时填写' }
+            ifShow: model => Number(model.objectType) === 3,
+            componentProps: { rows: 4, placeholder: '对象类型为查询时填写' }
           },
           {
             field: 'primaryKeyFields',
@@ -123,6 +159,7 @@ export function useDatasetPage() {
             field: 'incrementalField',
             label: '增量字段',
             defaultValue: '',
+            ifShow: model => Number(model.updateStrategy) === 2,
             componentProps: { maxlength: 128, placeholder: '增量策略时填写' }
           },
           {
@@ -165,6 +202,14 @@ export function useDatasetPage() {
         ]
       }
     ],
+    onFormOpen: async ({ model }) => {
+      model.sourceId = asIdString(model.sourceId) || null
+      await loadSourceOptions(model.sourceId)
+    },
+    beforeSubmit: data => {
+      data.sourceId = asIdString(data.sourceId)
+      if (!data.sourceId) throw new Error('请选择数据源')
+    },
     request: getDatasetPage,
     create: data => createDataset(data as unknown as SaveDatasetInput),
     update: (id, data) => updateDataset(id, data as unknown as SaveDatasetInput),

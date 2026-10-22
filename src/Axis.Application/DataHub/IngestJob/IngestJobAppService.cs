@@ -1,6 +1,8 @@
 using Axis.Application.Common;
+using Axis.Application.DataHub.Common;
 using Axis.Application.DataHub.IngestJob.Dto;
 using Axis.Domain.DataHub;
+using Axis.Domain.Enums;
 using Axis.Infrastructure.Author;
 using Axis.Infrastructure.Components.Database;
 using Axis.Infrastructure.Components.Database.Internal;
@@ -21,13 +23,12 @@ public sealed class IngestJobAppService(
     ICurrentAccount currentAccount)
     : BaseAppService<DhIngestJob>(repository, db, currentAccount), IIngestJobAppService, IAutoInject
 {
-    /// <summary>
-    /// 按条件分页查询采集任务，投影为 <see cref="IngestJobDto"/>。
-    /// </summary>
     public async Task<SqlSugarPagedList<IngestJobDto>> PageAsync(IngestJobPageQuery query, CancellationToken ct = default)
-        => await Repo.AsQueryable()
+    {
+        var page = await Repo.AsQueryable()
             .WhereIF(!string.IsNullOrWhiteSpace(query.Keyword), item => item.Name.Contains(query.Keyword!) || (item.Code != null && item.Code.Contains(query.Keyword!)))
             .WhereIF(query.Status.HasValue, item => item.Status == query.Status!.Value)
+            .OrderBy(item => item.OrderNo)
             .OrderBy(item => item.CreatedTime, OrderByType.Desc)
             .Select(item => new IngestJobDto
             {
@@ -46,11 +47,30 @@ public sealed class IngestJobAppService(
             })
             .ToPagedListAsync(query.Page, query.PageSize);
 
-    /// <summary>
-    /// 创建采集任务。
-    /// </summary>
+        await FillDatasetNamesAsync(page.Items, ct);
+        return page;
+    }
+
+    public async Task<IReadOnlyList<DataHubLookupItemDto>> ListLookupAsync(CancellationToken ct = default)
+    {
+        var rows = await Repo.AsQueryable()
+            .Where(item => item.Status == StatusEnum.Enable)
+            .WhereIF(CurrentAccount.TenantId.HasValue, item => item.TenantId == CurrentAccount.TenantId)
+            .OrderBy(item => item.OrderNo)
+            .OrderBy(item => item.Name)
+            .Select(item => new { item.Id, item.Name, item.Code })
+            .ToListAsync(ct);
+
+        return rows.Select(item => new DataHubLookupItemDto
+        {
+            Value = item.Id.ToString(),
+            Label = string.IsNullOrWhiteSpace(item.Code) ? item.Name : $"{item.Name}（{item.Code}）"
+        }).ToList();
+    }
+
     public async Task CreateAsync(SaveIngestJobInput input, CancellationToken ct = default)
     {
+        await EnsureDatasetExistsAsync(input.DatasetId, ct);
         await EnsureCodeUniqueAsync(input.Code, null, ct);
         await Db.Insertable(new DhIngestJob
         {
@@ -61,7 +81,7 @@ public sealed class IngestJobAppService(
             Code = input.Code,
             Strategy = input.Strategy,
             CronExpression = input.CronExpression,
-            BatchSize = input.BatchSize,
+            BatchSize = input.BatchSize <= 0 ? 1000 : input.BatchSize,
             OrderNo = input.OrderNo,
             Status = input.Status,
             Remark = input.Remark,
@@ -71,13 +91,11 @@ public sealed class IngestJobAppService(
         }).ExecuteCommandAsync(ct);
     }
 
-    /// <summary>
-    /// 更新指定采集任务。
-    /// </summary>
     public async Task UpdateAsync(long id, SaveIngestJobInput input, CancellationToken ct = default)
     {
         var entity = await Repo.AsQueryable().Where(item => item.Id == id).FirstAsync(ct)
                      ?? throw new BusinessException("采集任务不存在");
+        await EnsureDatasetExistsAsync(input.DatasetId, ct);
         await EnsureCodeUniqueAsync(input.Code, id, ct);
 
         entity.DatasetId = input.DatasetId;
@@ -85,7 +103,7 @@ public sealed class IngestJobAppService(
         entity.Code = input.Code;
         entity.Strategy = input.Strategy;
         entity.CronExpression = input.CronExpression;
-        entity.BatchSize = input.BatchSize;
+        entity.BatchSize = input.BatchSize <= 0 ? 1000 : input.BatchSize;
         entity.OrderNo = input.OrderNo;
         entity.Status = input.Status;
         entity.Remark = input.Remark;
@@ -95,18 +113,39 @@ public sealed class IngestJobAppService(
         await Repo.AsUpdateable(entity).ExecuteWithOptLockAsync(ct);
     }
 
-    /// <summary>
-    /// 删除采集任务。
-    /// </summary>
     public override async Task DeleteAsync(long id, CancellationToken ct = default)
     {
+        var inUse = await Db.Queryable<DhIngestRun>().Where(item => item.JobId == id).AnyAsync(ct);
+        if (inUse) throw new BusinessException("采集任务已有运行记录，无法删除");
+
         var affected = await Db.Deleteable<DhIngestJob>().Where(item => item.Id == id).ExecuteCommandAsync(ct);
         if (affected == 0) throw new BusinessException("采集任务不存在");
     }
 
-    /// <summary>
-    /// 校验非空编码在当前租户内唯一。
-    /// </summary>
+    private async Task FillDatasetNamesAsync(IEnumerable<IngestJobDto> items, CancellationToken ct)
+    {
+        if (!items.Any()) return;
+        var ids = items.Select(item => item.DatasetId).Distinct().ToList();
+        var rows = await Db.Queryable<DhDataset>()
+            .Where(item => ids.Contains(item.Id))
+            .Select(item => new { item.Id, item.Name, item.Code })
+            .ToListAsync(ct);
+        var map = rows.ToDictionary(item => item.Id, item => item);
+        foreach (var item in items)
+        {
+            if (!map.TryGetValue(item.DatasetId, out var dataset)) continue;
+            item.DatasetName = dataset.Name;
+            item.DatasetCode = dataset.Code;
+        }
+    }
+
+    private async Task EnsureDatasetExistsAsync(long datasetId, CancellationToken ct)
+    {
+        if (datasetId <= 0) throw new BusinessException("请选择数据集");
+        var exists = await Db.Queryable<DhDataset>().Where(item => item.Id == datasetId).AnyAsync(ct);
+        if (!exists) throw new BusinessException("所选数据集不存在");
+    }
+
     private async Task EnsureCodeUniqueAsync(string? code, long? excludedId, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(code)) return;

@@ -18,6 +18,16 @@ public sealed class IngestRunDto
     public long JobId { get; set; }
 
     /// <summary>
+    /// 采集任务名称。
+    /// </summary>
+    public string? JobName { get; set; }
+
+    /// <summary>
+    /// 采集任务编码。
+    /// </summary>
+    public string? JobCode { get; set; }
+
+    /// <summary>
     /// Name。
     /// </summary>
     public string Name { get; set; } = null!;

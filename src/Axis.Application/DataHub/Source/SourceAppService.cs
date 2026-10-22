@@ -1,6 +1,8 @@
 using Axis.Application.Common;
+using Axis.Application.DataHub.Common;
 using Axis.Application.DataHub.Source.Dto;
 using Axis.Domain.DataHub;
+using Axis.Domain.Enums;
 using Axis.Infrastructure.Author;
 using Axis.Infrastructure.Components.Database;
 using Axis.Infrastructure.Components.Database.Internal;
@@ -21,13 +23,11 @@ public sealed class SourceAppService(
     ICurrentAccount currentAccount)
     : BaseAppService<DhSource>(repository, db, currentAccount), ISourceAppService, IAutoInject
 {
-    /// <summary>
-    /// 按条件分页查询数据源，投影为 <see cref="SourceDto"/>。
-    /// </summary>
     public async Task<SqlSugarPagedList<SourceDto>> PageAsync(SourcePageQuery query, CancellationToken ct = default)
         => await Repo.AsQueryable()
             .WhereIF(!string.IsNullOrWhiteSpace(query.Keyword), item => item.Name.Contains(query.Keyword!) || (item.Code != null && item.Code.Contains(query.Keyword!)))
             .WhereIF(query.Status.HasValue, item => item.Status == query.Status!.Value)
+            .OrderBy(item => item.OrderNo)
             .OrderBy(item => item.CreatedTime, OrderByType.Desc)
             .Select(item => new SourceDto
             {
@@ -45,9 +45,23 @@ public sealed class SourceAppService(
             })
             .ToPagedListAsync(query.Page, query.PageSize);
 
-    /// <summary>
-    /// 创建数据源。
-    /// </summary>
+    public async Task<IReadOnlyList<DataHubLookupItemDto>> ListLookupAsync(CancellationToken ct = default)
+    {
+        var rows = await Repo.AsQueryable()
+            .Where(item => item.Status == StatusEnum.Enable)
+            .WhereIF(CurrentAccount.TenantId.HasValue, item => item.TenantId == CurrentAccount.TenantId)
+            .OrderBy(item => item.OrderNo)
+            .OrderBy(item => item.Name)
+            .Select(item => new { item.Id, item.Name, item.Code })
+            .ToListAsync(ct);
+
+        return rows.Select(item => new DataHubLookupItemDto
+        {
+            Value = item.Id.ToString(),
+            Label = string.IsNullOrWhiteSpace(item.Code) ? item.Name : $"{item.Name}（{item.Code}）"
+        }).ToList();
+    }
+
     public async Task CreateAsync(SaveSourceInput input, CancellationToken ct = default)
     {
         await EnsureCodeUniqueAsync(input.Code, null, ct);
@@ -69,9 +83,6 @@ public sealed class SourceAppService(
         }).ExecuteCommandAsync(ct);
     }
 
-    /// <summary>
-    /// 更新指定数据源。
-    /// </summary>
     public async Task UpdateAsync(long id, SaveSourceInput input, CancellationToken ct = default)
     {
         var entity = await Repo.AsQueryable().Where(item => item.Id == id).FirstAsync(ct)
@@ -92,18 +103,15 @@ public sealed class SourceAppService(
         await Repo.AsUpdateable(entity).ExecuteWithOptLockAsync(ct);
     }
 
-    /// <summary>
-    /// 删除数据源。
-    /// </summary>
     public override async Task DeleteAsync(long id, CancellationToken ct = default)
     {
+        var inUse = await Db.Queryable<DhDataset>().Where(item => item.SourceId == id).AnyAsync(ct);
+        if (inUse) throw new BusinessException("数据源已被数据集引用，无法删除");
+
         var affected = await Db.Deleteable<DhSource>().Where(item => item.Id == id).ExecuteCommandAsync(ct);
         if (affected == 0) throw new BusinessException("数据源不存在");
     }
 
-    /// <summary>
-    /// 校验非空编码在当前租户内唯一。
-    /// </summary>
     private async Task EnsureCodeUniqueAsync(string? code, long? excludedId, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(code)) return;

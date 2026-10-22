@@ -4,13 +4,15 @@ import { request } from '@/shared/http'
 export interface IngestRunDto extends Record<string, unknown> {
   id: string
   jobId?: string
+  jobName?: string
+  jobCode?: string
   name: string
   code: string
   runStatus?: number
   startedTime?: string
   finishedTime?: string
-  rowCountRead?: string
-  rowCountChanged?: string
+  rowCountRead?: string | number
+  rowCountChanged?: string | number
   errorMessage?: string
   watermark?: string
   orderNo?: number
@@ -21,14 +23,14 @@ export interface IngestRunDto extends Record<string, unknown> {
 
 /** 采集运行保存数据。 */
 export interface SaveIngestRunInput {
-  jobId?: string
-  name: string
-  code: string
+  jobId: string
+  name?: string
+  code?: string
   runStatus?: number
   startedTime?: string
   finishedTime?: string
-  rowCountRead?: string
-  rowCountChanged?: string
+  rowCountRead?: number
+  rowCountChanged?: number
   errorMessage?: string
   watermark?: string
   orderNo?: number

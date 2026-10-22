@@ -1,4 +1,5 @@
 import { request } from '@/shared/http'
+import type { DataHubLookupItem } from '@/modules/datahub/api/dataset'
 
 /** 数据源列表数据。 */
 export interface SourceDto extends Record<string, unknown> {
@@ -57,4 +58,8 @@ export interface SecretRefOptions {
 /** 从后端配置/环境变量动态加载可选密钥键（不含明文）。 */
 export function listSecretRefOptions() {
   return request.get<SecretRefOptions>({ url: '/datahub/source/secret-ref-options' })
+}
+
+export function listSourceLookup() {
+  return request.get<DataHubLookupItem[]>({ url: '/datahub/source/lookup' })
 }

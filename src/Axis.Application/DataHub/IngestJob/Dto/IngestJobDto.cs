@@ -18,6 +18,16 @@ public sealed class IngestJobDto
     public long DatasetId { get; set; }
 
     /// <summary>
+    /// 数据集名称。
+    /// </summary>
+    public string? DatasetName { get; set; }
+
+    /// <summary>
+    /// 数据集编码。
+    /// </summary>
+    public string? DatasetCode { get; set; }
+
+    /// <summary>
     /// Name。
     /// </summary>
     public string Name { get; set; } = null!;

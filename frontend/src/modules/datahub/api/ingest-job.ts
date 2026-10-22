@@ -1,9 +1,14 @@
 import { request } from '@/shared/http'
+import type { DataHubLookupItem } from '@/modules/datahub/api/dataset'
+
+export type { DataHubLookupItem }
 
 /** 采集任务列表数据。 */
 export interface IngestJobDto extends Record<string, unknown> {
   id: string
   datasetId?: string
+  datasetName?: string
+  datasetCode?: string
   name: string
   code: string
   strategy?: number
@@ -17,7 +22,7 @@ export interface IngestJobDto extends Record<string, unknown> {
 
 /** 采集任务保存数据。 */
 export interface SaveIngestJobInput {
-  datasetId?: string
+  datasetId: string
   name: string
   code: string
   strategy?: number
@@ -30,6 +35,10 @@ export interface SaveIngestJobInput {
 
 export function getIngestJobPage(params: Record<string, unknown>) {
   return request.get<unknown>({ url: '/datahub/ingest-job/page', params })
+}
+
+export function listIngestJobLookup() {
+  return request.get<DataHubLookupItem[]>({ url: '/datahub/ingest-job/lookup' })
 }
 
 export function createIngestJob(data: SaveIngestJobInput) {
