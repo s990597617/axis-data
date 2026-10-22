@@ -4,17 +4,16 @@ using Axis.Domain.Enums;
 using Axis.Infrastructure.Components.Database.Repositories;
 using Axis.Infrastructure.Dependency.Annotations;
 using Axis.Infrastructure.Exceptions;
-using Microsoft.Extensions.Configuration;
 using SqlSugar;
 
 namespace Axis.Application.DataHub.Source;
 
 /// <summary>
-/// 数据源元数据浏览应用服务：按 SecretRef 打开临时连接读取表/视图/列。
+/// 数据源元数据浏览应用服务：按连接配置运行时连接读取表/视图/列。
 /// </summary>
 public sealed class SourceSchemaAppService(
     IRepository<DhSource> repository,
-    IConfiguration configuration)
+    SourceConnectionFactory connectionFactory)
     : ISourceSchemaAppService, IAutoInject
 {
     public async Task<IReadOnlyList<DataHubLookupItemDto>> ListObjectsAsync(
@@ -105,71 +104,23 @@ public sealed class SourceSchemaAppService(
                      ?? throw new BusinessException("数据源不存在");
 
         if (source.SourceType == DhSourceTypeEnum.Http)
-            throw new BusinessException("HTTP 数据源请使用「查询」类型并手写 SQL，无法浏览对象");
-
-        var connectionString = ResolveConnectionString(source.SecretRef);
-        var dbType = MapDbType(source.SourceType);
+            throw new BusinessException("HTTP 数据源请使用「查询」对象类型并填写 SQL，无法浏览库表");
 
         try
         {
-            var client = new SqlSugarClient(new ConnectionConfig
-            {
-                ConnectionString = connectionString,
-                DbType = dbType,
-                IsAutoCloseConnection = true,
-                InitKeyType = InitKeyType.Attribute
-            });
+            var connectionString = connectionFactory.ResolveConnectionString(source);
+            var client = connectionFactory.OpenClient(source.SourceType, connectionString);
             return (client, source);
+        }
+        catch (BusinessException)
+        {
+            throw;
         }
         catch (Exception ex)
         {
             throw WrapMetaException(ex);
         }
     }
-
-    private string ResolveConnectionString(string? secretRef)
-    {
-        if (string.IsNullOrWhiteSpace(secretRef))
-            throw new BusinessException("数据源未配置连接或密钥引用无效");
-
-        var raw = secretRef.Trim();
-        const string configPrefix = "config:";
-        const string envPrefix = "env:";
-
-        if (raw.StartsWith(configPrefix, StringComparison.OrdinalIgnoreCase))
-        {
-            var key = raw[configPrefix.Length..].Trim();
-            if (string.IsNullOrWhiteSpace(key))
-                throw new BusinessException("数据源未配置连接或密钥引用无效");
-
-            var value = configuration[key];
-            if (string.IsNullOrWhiteSpace(value))
-                throw new BusinessException("数据源未配置连接或密钥引用无效");
-            return value;
-        }
-
-        if (raw.StartsWith(envPrefix, StringComparison.OrdinalIgnoreCase))
-        {
-            var name = raw[envPrefix.Length..].Trim();
-            if (string.IsNullOrWhiteSpace(name))
-                throw new BusinessException("数据源未配置连接或密钥引用无效");
-
-            var value = Environment.GetEnvironmentVariable(name);
-            if (string.IsNullOrWhiteSpace(value))
-                throw new BusinessException("数据源未配置连接或密钥引用无效");
-            return value;
-        }
-
-        throw new BusinessException("数据源未配置连接或密钥引用无效");
-    }
-
-    private static DbType MapDbType(DhSourceTypeEnum sourceType) => sourceType switch
-    {
-        DhSourceTypeEnum.SqlServer => DbType.SqlServer,
-        DhSourceTypeEnum.PostgreSql => DbType.PostgreSQL,
-        DhSourceTypeEnum.MySql => DbType.MySql,
-        _ => throw new BusinessException("HTTP 数据源请使用「查询」类型并手写 SQL，无法浏览对象")
-    };
 
     private static string FormatObjectName(DbTableInfo info)
     {
@@ -189,9 +140,10 @@ public sealed class SourceSchemaAppService(
             || combined.Contains("未找到程序集", StringComparison.Ordinal)
             || combined.Contains("SqlClient", StringComparison.OrdinalIgnoreCase)
             || combined.Contains("MySqlConnector", StringComparison.OrdinalIgnoreCase)
-            || combined.Contains("MySql.Data", StringComparison.OrdinalIgnoreCase))
+            || combined.Contains("MySql.Data", StringComparison.OrdinalIgnoreCase)
+            || combined.Contains("Npgsql", StringComparison.OrdinalIgnoreCase))
         {
-            return new BusinessException("当前环境未安装该数据库驱动，可手动输入对象名");
+            return new BusinessException("当前环境未安装对应数据库驱动，无法读取字段元数据");
         }
 
         if (combined.Contains("connect", StringComparison.OrdinalIgnoreCase)

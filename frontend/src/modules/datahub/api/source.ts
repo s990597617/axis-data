@@ -8,6 +8,10 @@ export interface SourceDto extends Record<string, unknown> {
   code: string
   sourceType?: number
   secretRef?: string
+  hasConnectionString?: boolean
+  lastTestStatus?: number
+  lastTestTime?: string
+  lastTestMessage?: string
   isReadOnly?: boolean
   orderNo?: number
   status: number
@@ -20,11 +24,32 @@ export interface SaveSourceInput {
   name: string
   code: string
   sourceType?: number
-  secretRef?: string
+  secretRef?: string | null
+  connectionString?: string | null
   isReadOnly?: boolean
   orderNo?: number
   status: number
   remark?: string
+}
+
+/** 连通性测试入参。 */
+export interface TestSourceConnectionInput {
+  sourceType: number
+  secretRef?: string | null
+  connectionString?: string | null
+  host?: string
+  port?: number | null
+  database?: string
+  username?: string
+  password?: string
+  baseUrl?: string
+}
+
+/** 连通性测试结果。 */
+export interface TestSourceConnectionResult {
+  success: boolean
+  message: string
+  elapsedMs: number
 }
 
 export function getSourcePage(params: Record<string, unknown>) {
@@ -41,6 +66,21 @@ export function updateSource(id: string, data: SaveSourceInput) {
 
 export function deleteSource(id: string) {
   return request.delete<void>({ url: `/datahub/source/${id}` })
+}
+
+/** 按表单入参测试连通性（可不依赖已保存）。 */
+export function testSourceConnection(data: TestSourceConnectionInput) {
+  return request.post<TestSourceConnectionResult>({
+    url: '/datahub/source/test-connection',
+    data
+  })
+}
+
+/** 按已保存数据源测试连通性并回写状态。 */
+export function testSourceById(id: string) {
+  return request.post<TestSourceConnectionResult>({
+    url: `/datahub/source/${id}/test-connection`
+  })
 }
 
 /** 密钥引用可选项。 */
@@ -67,7 +107,7 @@ export function listSourceLookup() {
 /** 列出数据源表/视图（元数据）。objectType: 1=表 2=视图 3=查询(空)。 */
 export function listSourceObjects(sourceId: string, objectType: number) {
   return request.get<DataHubLookupItem[]>({
-    url: /datahub/source//objects,
+    url: `/datahub/source/${sourceId}/objects`,
     params: { objectType }
   })
 }
@@ -75,7 +115,7 @@ export function listSourceObjects(sourceId: string, objectType: number) {
 /** 列出数据源对象列（元数据）。 */
 export function listSourceColumns(sourceId: string, objectName: string) {
   return request.get<DataHubLookupItem[]>({
-    url: /datahub/source//columns,
+    url: `/datahub/source/${sourceId}/columns`,
     params: { objectName }
   })
 }

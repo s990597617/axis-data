@@ -1,23 +1,41 @@
-import { ref } from 'vue'
-import type { SourceDto, SaveSourceInput, SecretRefOptionItem } from '@/modules/datahub/api/source'
+import { h, ref } from 'vue'
+import { NTag } from 'naive-ui'
+import type {
+  SourceDto,
+  SaveSourceInput,
+  SecretRefOptionItem,
+  TestSourceConnectionInput
+} from '@/modules/datahub/api/source'
 import {
   createSource,
   deleteSource,
   getSourcePage,
   listSecretRefOptions,
+  testSourceById,
+  testSourceConnection,
   updateSource
 } from '@/modules/datahub/api/source'
 import { dataHubPermissionCodes } from '@/modules/datahub/permissions/codes'
 import {
+  AxisCrudPage,
   formatDateTime,
   renderStatus,
   statusOptions,
   type AxisCrudResource
 } from '@/shared/components/axis-crud'
+import type { AxisFormFieldContext, AxisFormOption } from '@/shared/components/axis-form'
 import type { AxisTableColumn } from '@/shared/components/axis-table'
-import type { AxisFormOption } from '@/shared/components/axis-form'
+import { tryRequest } from '@/shared/http'
+import { message } from '@/shared/utils/message'
 
 const sourceTypeOptions: AxisFormOption[] = [
+  { label: 'PostgreSQL（常用关系库）', value: 2 },
+  { label: 'MySQL', value: 3 },
+  { label: 'SQL Server', value: 1 },
+  { label: 'HTTP / API', value: 4 }
+]
+
+const sourceTypeDict: AxisFormOption[] = [
   { label: 'SQL Server', value: 1 },
   { label: 'PostgreSQL', value: 2 },
   { label: 'MySQL', value: 3 },
@@ -30,7 +48,19 @@ const secretKindOptions: AxisFormOption[] = [
   { label: '暂不配置', value: 'none' }
 ]
 
+const connectionModeOptions: AxisFormOption[] = [
+  { label: '密钥引用（推荐）', value: 'secret' },
+  { label: '结构化连接串', value: 'inline' }
+]
+
+const lastTestStatusOptions: AxisFormOption[] = [
+  { label: '未测试', value: 0 },
+  { label: '成功', value: 1 },
+  { label: '失败', value: 2 }
+]
+
 type SecretKind = 'config' | 'env' | 'none'
+type ConnectionMode = 'secret' | 'inline'
 
 function toFormOptions(items: SecretRefOptionItem[] | undefined): AxisFormOption[] {
   return (items ?? []).map(item => ({
@@ -70,15 +100,122 @@ function composeSecretRef(
   return name ? `config:${name}` : null
 }
 
-function formatSecretRef(secretRef: unknown): string {
-  const raw = String(secretRef ?? '').trim()
-  if (!raw) return '—'
-  if (raw.startsWith('config:')) return `配置 · ${raw.slice(7)}`
+function defaultPort(sourceType: unknown): number {
+  const t = Number(sourceType)
+  if (t === 2) return 5432
+  if (t === 3) return 3306
+  if (t === 1) return 1433
+  return 0
+}
+
+function isHttpType(sourceType: unknown): boolean {
+  return Number(sourceType) === 4
+}
+
+function isDbType(sourceType: unknown): boolean {
+  const t = Number(sourceType)
+  return t === 1 || t === 2 || t === 3
+}
+
+function formatConnection(row: SourceDto): string {
+  if (row.hasConnectionString) return '连接串已配置'
+  const raw = String(row.secretRef ?? '').trim()
+  if (!raw) return '未配置'
+  if (raw.startsWith('config:')) return `配置密钥 · ${raw.slice(7)}`
   if (raw.startsWith('env:')) return `环境变量 · ${raw.slice(4)}`
-  return raw
+  return '配置密钥'
+}
+
+function renderLastTestStatus(status: unknown) {
+  const value = Number(status ?? 0)
+  if (value === 1) {
+    return h(NTag, { type: 'success', size: 'small', bordered: false }, { default: () => '成功' })
+  }
+  if (value === 2) {
+    return h(NTag, { type: 'error', size: 'small', bordered: false }, { default: () => '失败' })
+  }
+  return h(NTag, { type: 'default', size: 'small', bordered: false }, { default: () => '未测试' })
+}
+
+function buildInlineConnectionString(data: Record<string, unknown>): string | null {
+  const sourceType = Number(data.sourceType)
+  if (sourceType === 4) {
+    const baseUrl = String(data.baseUrl ?? '').trim()
+    return baseUrl || null
+  }
+
+  const host = String(data.host ?? '').trim()
+  const database = String(data.database ?? '').trim()
+  const username = String(data.username ?? '').trim()
+  const password = String(data.password ?? '')
+  if (!host || !database) return null
+
+  const portRaw = data.port
+  const port =
+    portRaw === null || portRaw === undefined || portRaw === ''
+      ? defaultPort(sourceType)
+      : Number(portRaw)
+
+  if (sourceType === 2) {
+    return `Host=${host};Port=${port};Database=${database};Username=${username};Password=${password}`
+  }
+  if (sourceType === 3) {
+    return `Server=${host};Port=${port};Database=${database};Uid=${username};Pwd=${password};CharSet=utf8mb4`
+  }
+  if (sourceType === 1) {
+    return `Server=${host},${port};Database=${database};User Id=${username};Password=${password};TrustServerCertificate=True`
+  }
+  return null
+}
+
+function buildTestPayload(data: Record<string, unknown>): TestSourceConnectionInput {
+  const sourceType = Number(data.sourceType)
+  const mode = String(data.connectionMode ?? 'secret') as ConnectionMode
+
+  if (mode === 'inline') {
+    const connectionString = buildInlineConnectionString(data)
+    return {
+      sourceType,
+      connectionString: connectionString ?? undefined,
+      host: String(data.host ?? '').trim() || undefined,
+      port:
+        data.port === null || data.port === undefined || data.port === ''
+          ? null
+          : Number(data.port),
+      database: String(data.database ?? '').trim() || undefined,
+      username: String(data.username ?? '').trim() || undefined,
+      password: String(data.password ?? '') || undefined,
+      baseUrl: String(data.baseUrl ?? '').trim() || undefined
+    }
+  }
+
+  return {
+    sourceType,
+    secretRef: composeSecretRef(data.secretKind, data.secretConfigKey, data.secretEnvKey)
+  }
+}
+
+function scrubVirtualFields(data: Record<string, unknown>) {
+  delete data.connectionMode
+  delete data.host
+  delete data.port
+  delete data.database
+  delete data.username
+  delete data.password
+  delete data.baseUrl
+  delete data.secretKind
+  delete data.secretConfigKey
+  delete data.secretEnvKey
+  delete data.runTest
+  delete data.testHint
+  delete data.hasConnectionString
+  delete data.lastTestStatus
+  delete data.lastTestTime
+  delete data.lastTestMessage
 }
 
 export function useSourcePage() {
+  const pageRef = ref<InstanceType<typeof AxisCrudPage> | null>(null)
   const configKeyOptions = ref<AxisFormOption[]>([])
   const envKeyOptions = ref<AxisFormOption[]>([])
 
@@ -93,27 +230,54 @@ export function useSourcePage() {
     }
   }
 
+  async function handleTestRow(row: SourceDto) {
+    const [result, error] = await tryRequest(testSourceById(row.id), {
+      fallbackMessage: '连通性测试失败'
+    })
+    if (error) return
+    if (result?.success) {
+      message.success(result.message || '连接成功')
+    } else {
+      message.error(result?.message || '连接失败')
+    }
+    await pageRef.value?.reload()
+  }
+
   const columns: AxisTableColumn<SourceDto>[] = [
     { key: 'name', title: '名称', search: { field: 'keyword', placeholder: '名称/编码' } },
     { key: 'code', title: '编码' },
-    { key: 'sourceType', title: '数据源类型', dict: sourceTypeOptions },
+    { key: 'sourceType', title: '类型', dict: sourceTypeDict, width: 110 },
     {
       key: 'secretRef',
-      title: '密钥引用',
+      title: '连接',
       ellipsis: { tooltip: true },
-      render: row => formatSecretRef(row.secretRef)
+      minWidth: 160,
+      render: row => formatConnection(row)
     },
-    { key: 'isReadOnly', title: '只读' },
-    { key: 'orderNo', title: '排序', width: 80 },
+    {
+      key: 'lastTestStatus',
+      title: '连通性',
+      width: 90,
+      dict: lastTestStatusOptions,
+      render: row => renderLastTestStatus(row.lastTestStatus)
+    },
+    {
+      key: 'lastTestTime',
+      title: '最近测试',
+      width: 170,
+      render: row => formatDateTime(row.lastTestTime)
+    },
+    { key: 'isReadOnly', title: '只读', width: 70 },
     {
       key: 'status',
       title: '状态',
+      width: 90,
       dict: statusOptions,
       search: true,
       render: row => renderStatus(row.status)
     },
     { key: 'remark', title: '备注', ellipsis: { tooltip: true } },
-    { key: 'createdTime', title: '创建时间', render: row => formatDateTime(row.createdTime) }
+    { key: 'createdTime', title: '创建时间', width: 170, render: row => formatDateTime(row.createdTime) }
   ]
 
   const resource: AxisCrudResource<SourceDto> = {
@@ -124,16 +288,202 @@ export function useSourcePage() {
     formSubtitle: ({ editing, model }) =>
       editing
         ? `编辑数据源「${String((model as Record<string, unknown>).name || '-')}」`
-        : '新增数据源',
-    formWidth: 820,
+        : '向导：先选类型 → 配置连接 → 测试 → 填写基本信息',
+    formWidth: 880,
     actionColumn: {
-      width: 120,
-      maxInline: 2
+      width: 180,
+      maxInline: 3
     },
+    extraActions: [
+      {
+        key: 'test',
+        label: '测试连接',
+        icon: 'ant-design:api-outlined',
+        type: 'primary',
+        permissions: [dataHubPermissionCodes.source.edit],
+        onClick: row => handleTestRow(row as SourceDto)
+      }
+    ],
     formSections: [
       {
+        key: 'type',
+        title: '① 选择类型',
+        icon: 'ant-design:appstore-outlined',
+        description: '先选类型，再配置连接；不同类型字段不同。',
+        columns: 1,
+        fields: [
+          {
+            field: 'sourceType',
+            label: '数据源类型',
+            component: 'radio',
+            options: sourceTypeOptions,
+            required: true,
+            defaultValue: 2,
+            help: 'PostgreSQL / MySQL / SQL Server 走库表元数据；HTTP 请在数据集中用「查询」+ SQL。',
+            componentProps: ((ctx: AxisFormFieldContext) => ({
+              onUpdateValue: (value: number) => {
+                if (!ctx.model.port && isDbType(value)) {
+                  ctx.model.port = defaultPort(value)
+                }
+              }
+            })) as unknown as Record<string, unknown>
+          }
+        ]
+      },
+      {
+        key: 'mode',
+        title: '② 连接方式',
+        icon: 'ant-design:link-outlined',
+        columns: 1,
+        fields: [
+          {
+            field: 'connectionMode',
+            label: '连接方式',
+            component: 'radio',
+            options: connectionModeOptions,
+            required: true,
+            defaultValue: 'secret',
+            help: '推荐密钥引用：真实连接串写在服务器配置，这里只选配置键。'
+          }
+        ]
+      },
+      {
+        key: 'secret',
+        title: '③ 连接信息 · 密钥',
+        icon: 'ant-design:safety-certificate-outlined',
+        description:
+          '下拉选项从后端配置动态加载（ConnectionStrings、DataHub:Sources，以及 DH_SOURCE_* 环境变量），也可手输新键。',
+        columns: 1,
+        fields: [
+          {
+            field: 'secretKind',
+            label: '密钥来源',
+            component: 'radio',
+            options: secretKindOptions,
+            required: true,
+            defaultValue: 'config',
+            ifShow: model => model.connectionMode === 'secret'
+          },
+          {
+            field: 'secretConfigKey',
+            label: '配置键',
+            component: 'select',
+            options: () => configKeyOptions.value,
+            required: true,
+            defaultValue: '',
+            ifShow: model => model.connectionMode === 'secret' && model.secretKind === 'config',
+            componentProps: {
+              filterable: true,
+              tag: true,
+              clearable: true,
+              placeholder: '从配置加载，或输入新键如 ConnectionStrings:MyDb'
+            },
+            help: '在 14-DataHub.json 等配置中增加键后，重启 API 即可出现在列表。'
+          },
+          {
+            field: 'secretEnvKey',
+            label: '环境变量名',
+            component: 'select',
+            options: () => envKeyOptions.value,
+            required: true,
+            defaultValue: '',
+            ifShow: model => model.connectionMode === 'secret' && model.secretKind === 'env',
+            componentProps: {
+              filterable: true,
+              tag: true,
+              clearable: true,
+              placeholder: '选择已有 DH_SOURCE_* 变量，或输入新变量名'
+            },
+            help: '仅自动列出以 DH_SOURCE_ 开头的环境变量。'
+          }
+        ]
+      },
+      {
+        key: 'inline',
+        title: '③ 连接信息 · 结构化',
+        icon: 'ant-design:database-outlined',
+        description: '连接串仅保存在服务端，列表不回显明文。编辑时请重新填写密码。',
+        columns: 2,
+        fields: [
+          {
+            field: 'host',
+            label: '主机',
+            defaultValue: '',
+            ifShow: model => model.connectionMode === 'inline' && isDbType(model.sourceType),
+            componentProps: { maxlength: 256, placeholder: '如 127.0.0.1' }
+          },
+          {
+            field: 'port',
+            label: '端口',
+            component: 'inputNumber',
+            defaultValue: 5432,
+            ifShow: model => model.connectionMode === 'inline' && isDbType(model.sourceType),
+            componentProps: { min: 1, max: 65535, placeholder: '端口' }
+          },
+          {
+            field: 'database',
+            label: '数据库',
+            defaultValue: '',
+            ifShow: model => model.connectionMode === 'inline' && isDbType(model.sourceType),
+            componentProps: { maxlength: 128, placeholder: '数据库名' }
+          },
+          {
+            field: 'username',
+            label: '用户名',
+            defaultValue: '',
+            ifShow: model => model.connectionMode === 'inline' && isDbType(model.sourceType),
+            componentProps: { maxlength: 128, placeholder: '登录用户' }
+          },
+          {
+            field: 'password',
+            label: '密码',
+            component: 'password',
+            defaultValue: '',
+            fullWidth: true,
+            ifShow: model => model.connectionMode === 'inline' && isDbType(model.sourceType),
+            componentProps: { maxlength: 256, placeholder: '编辑时请重新填写密码' },
+            help: '密码不会回显；保存后列表仅显示「连接串已配置」。'
+          },
+          {
+            field: 'baseUrl',
+            label: '基地址',
+            defaultValue: '',
+            fullWidth: true,
+            ifShow: model => model.connectionMode === 'inline' && isHttpType(model.sourceType),
+            componentProps: {
+              maxlength: 1024,
+              placeholder: 'https://api.example.com'
+            },
+            help: '须为绝对 http/https URL。'
+          }
+        ]
+      },
+      {
+        key: 'test',
+        title: '④ 连通性',
+        icon: 'ant-design:api-outlined',
+        columns: 1,
+        fields: [
+          {
+            field: 'runTest',
+            label: '保存前先测试连接',
+            component: 'switch',
+            defaultValue: true,
+            help: '开启后保存前会先调用测试接口；失败则阻止保存。'
+          },
+          {
+            field: 'testHint',
+            label: '最近测试结果',
+            component: 'textarea',
+            defaultValue: '',
+            disabled: () => true,
+            componentProps: { rows: 2, placeholder: '保存或行内「测试连接」后可在此看到说明' }
+          }
+        ]
+      },
+      {
         key: 'basic',
-        title: '基础信息',
+        title: '⑤ 基本信息',
         icon: 'ant-design:idcard-outlined',
         columns: 2,
         fields: [
@@ -150,14 +500,6 @@ export function useSourcePage() {
             required: true,
             defaultValue: '',
             componentProps: { maxlength: 64, placeholder: '请输入编码，如 u8-readonly' }
-          },
-          {
-            field: 'sourceType',
-            label: '数据源类型',
-            component: 'select',
-            options: sourceTypeOptions,
-            required: true,
-            defaultValue: 1
           },
           {
             field: 'isReadOnly',
@@ -196,57 +538,6 @@ export function useSourcePage() {
             }
           }
         ]
-      },
-      {
-        key: 'secret',
-        title: '连接密钥',
-        icon: 'ant-design:safety-certificate-outlined',
-        description:
-          '下拉选项从后端配置动态加载（ConnectionStrings、DataHub:Sources，以及 DH_SOURCE_* 环境变量），也可手输新键。',
-        columns: 1,
-        fields: [
-          {
-            field: 'secretKind',
-            label: '密钥来源',
-            component: 'radio',
-            options: secretKindOptions,
-            required: true,
-            defaultValue: 'config',
-            help: '推荐「应用配置」：真实连接串写在服务器配置，这里只选配置键。'
-          },
-          {
-            field: 'secretConfigKey',
-            label: '配置键',
-            component: 'select',
-            options: () => configKeyOptions.value,
-            required: true,
-            defaultValue: '',
-            ifShow: model => model.secretKind === 'config',
-            componentProps: {
-              filterable: true,
-              tag: true,
-              clearable: true,
-              placeholder: '从配置加载，或输入新键如 ConnectionStrings:MyDb'
-            },
-            help: '在 14-DataHub.json 等配置中增加键后，重启 API 即可出现在列表；标「未配置」表示键在但值为空。'
-          },
-          {
-            field: 'secretEnvKey',
-            label: '环境变量名',
-            component: 'select',
-            options: () => envKeyOptions.value,
-            required: true,
-            defaultValue: '',
-            ifShow: model => model.secretKind === 'env',
-            componentProps: {
-              filterable: true,
-              tag: true,
-              clearable: true,
-              placeholder: '选择已有 DH_SOURCE_* 变量，或输入新变量名'
-            },
-            help: '仅自动列出以 DH_SOURCE_ 开头的环境变量。'
-          }
-        ]
       }
     ],
     onFormOpen: async ({ model }) => {
@@ -255,6 +546,34 @@ export function useSourcePage() {
       model.secretKind = parsed.secretKind
       model.secretConfigKey = parsed.secretConfigKey
       model.secretEnvKey = parsed.secretEnvKey
+
+      const hasCs = Boolean(model.hasConnectionString)
+      if (hasCs) {
+        model.connectionMode = 'inline'
+      } else if (parsed.secretKind !== 'none') {
+        model.connectionMode = 'secret'
+      } else {
+        model.connectionMode = 'secret'
+      }
+
+      model.host = ''
+      model.database = ''
+      model.username = ''
+      model.password = ''
+      model.baseUrl = ''
+      model.port = defaultPort(model.sourceType)
+      model.runTest = true
+
+      const lastMsg = String(model.lastTestMessage ?? '').trim()
+      const lastStatus = Number(model.lastTestStatus ?? 0)
+      if (lastMsg) {
+        const tag = lastStatus === 1 ? '成功' : lastStatus === 2 ? '失败' : '未测试'
+        const time = model.lastTestTime ? formatDateTime(model.lastTestTime as string) : ''
+        model.testHint = `[${tag}] ${lastMsg}${time ? `（${time}）` : ''}`
+      } else {
+        model.testHint = ''
+      }
+
       if (
         parsed.secretConfigKey &&
         !configKeyOptions.value.some(o => o.value === parsed.secretConfigKey)
@@ -274,15 +593,57 @@ export function useSourcePage() {
         ]
       }
     },
-    beforeSubmit: data => {
-      data.secretRef = composeSecretRef(
-        data.secretKind,
-        data.secretConfigKey,
-        data.secretEnvKey
-      )
-      delete data.secretKind
-      delete data.secretConfigKey
-      delete data.secretEnvKey
+    beforeSubmit: async (data, editing) => {
+      const mode = String(data.connectionMode ?? 'secret') as ConnectionMode
+
+      if (mode === 'inline') {
+        data.secretRef = null
+        const cs = buildInlineConnectionString(data)
+        if (cs) {
+          data.connectionString = cs
+        } else if (!editing) {
+          throw new Error(
+            isHttpType(data.sourceType) ? '请填写 HTTP 基地址' : '请填写完整的主机、数据库等连接信息'
+          )
+        } else {
+          // 编辑时未重填连接信息：保留服务端已有连接串
+          delete data.connectionString
+        }
+      } else {
+        data.secretRef = composeSecretRef(data.secretKind, data.secretConfigKey, data.secretEnvKey)
+        data.connectionString = ''
+        if (!editing && !data.secretRef && Number(data.status) === 1) {
+          throw new Error('请配置密钥引用，或改用结构化连接串')
+        }
+      }
+
+      if (data.runTest) {
+        const payload = buildTestPayload(data)
+        // 编辑 + 密钥模式可直接测；编辑 + 内联但未重填时，提示用户先测或关掉开关
+        if (
+          mode === 'inline' &&
+          editing &&
+          !payload.connectionString &&
+          !payload.host &&
+          !payload.baseUrl
+        ) {
+          // 用已保存实体测：交给行内测试；此处跳过以免误报
+        } else {
+          const [result, error] = await tryRequest(testSourceConnection(payload), {
+            fallbackMessage: '连通性测试失败',
+            silent: true
+          })
+          if (error) {
+            throw new Error(error.message || '连通性测试失败')
+          }
+          if (!result?.success) {
+            throw new Error(result?.message || '连通性测试未通过，请检查连接配置')
+          }
+          data.testHint = `[成功] ${result.message}`
+        }
+      }
+
+      scrubVirtualFields(data)
       return data
     },
     request: getSourcePage,
@@ -291,5 +652,5 @@ export function useSourcePage() {
     remove: deleteSource
   }
 
-  return { resource }
+  return { resource, pageRef }
 }

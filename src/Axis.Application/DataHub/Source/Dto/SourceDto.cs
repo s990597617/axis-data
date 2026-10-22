@@ -13,42 +13,62 @@ public sealed class SourceDto
     public long Id { get; set; }
 
     /// <summary>
-    /// Name。
+    /// 名称。
     /// </summary>
     public string Name { get; set; } = null!;
 
     /// <summary>
-    /// Code。
+    /// 编码。
     /// </summary>
     public string Code { get; set; } = null!;
 
     /// <summary>
-    /// SourceType。
+    /// 数据源类型。
     /// </summary>
     public DhSourceTypeEnum SourceType { get; set; }
 
     /// <summary>
-    /// SecretRef。
+    /// 密钥引用（config: / env:）。
     /// </summary>
     public string? SecretRef { get; set; }
 
     /// <summary>
-    /// IsReadOnly。
+    /// 是否已配置内联连接串（不回显明文）。
+    /// </summary>
+    public bool HasConnectionString { get; set; }
+
+    /// <summary>
+    /// 最近连通性测试状态。
+    /// </summary>
+    public DhConnectionTestStatusEnum LastTestStatus { get; set; }
+
+    /// <summary>
+    /// 最近连通性测试时间。
+    /// </summary>
+    public DateTime? LastTestTime { get; set; }
+
+    /// <summary>
+    /// 最近连通性测试消息。
+    /// </summary>
+    public string? LastTestMessage { get; set; }
+
+    /// <summary>
+    /// 是否只读。
     /// </summary>
     public bool IsReadOnly { get; set; }
 
     /// <summary>
-    /// OrderNo。
+    /// 排序。
     /// </summary>
     public int OrderNo { get; set; }
 
     /// <summary>
-    /// Status。
+    /// 状态。
     /// </summary>
     public StatusEnum Status { get; set; }
 
     /// <summary>
-    /// Remark。
+    /// 备注。
     /// </summary>
     public string? Remark { get; set; }
 

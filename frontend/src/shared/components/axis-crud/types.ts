@@ -85,7 +85,7 @@ export interface AxisCrudResource<Row extends AxisCrudRow = AxisCrudRow> {
   canEdit?: (row: Row) => boolean
   /** 是否允许删除指定行；默认 true。 */
   canDelete?: (row: Row) => boolean
-  beforeSubmit?: (data: Record<string, unknown>, editing: boolean) => Record<string, unknown>
+  beforeSubmit?: (data: Record<string, unknown>, editing: boolean) => Record<string, unknown> | Promise<Record<string, unknown>>
   /** 打开新增/编辑弹窗并填好默认值之后调用，可异步预加载编码等。 */
   onFormOpen?: (context: {
     editing: boolean

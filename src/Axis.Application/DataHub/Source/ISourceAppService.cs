@@ -1,7 +1,6 @@
 using Axis.Application.DataHub.Common;
 using Axis.Application.DataHub.Source.Dto;
 using Axis.Infrastructure.Components.Database.Internal;
-using Axis.Infrastructure.Exceptions;
 
 namespace Axis.Application.DataHub.Source;
 
@@ -20,4 +19,10 @@ public interface ISourceAppService
     Task UpdateAsync(long id, SaveSourceInput input, CancellationToken ct = default);
 
     Task DeleteAsync(long id, CancellationToken ct = default);
+
+    /// <summary>按入参测试连通性（不要求已保存）。</summary>
+    Task<TestSourceConnectionResultDto> TestConnectionAsync(TestSourceConnectionInput input, CancellationToken ct = default);
+
+    /// <summary>按已保存数据源测试连通性，并回写最近测试结果。</summary>
+    Task<TestSourceConnectionResultDto> TestConnectionByIdAsync(long id, CancellationToken ct = default);
 }

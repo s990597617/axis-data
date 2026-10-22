@@ -7,12 +7,12 @@
 
   /* ============ 状态 & 引用 ============ */
 
-  const { resource } = useSourcePage()
+  const { resource, pageRef } = useSourcePage()
 </script>
 
 <template>
   <div class="source-page">
-    <AxisCrudPage :resource="resource" />
+    <AxisCrudPage ref="pageRef" :resource="resource" />
   </div>
 </template>
 

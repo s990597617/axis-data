@@ -43,11 +43,37 @@ public class DhSource : BaseEntity, ITenantId
     public DhSourceTypeEnum SourceType { get; set; } = DhSourceTypeEnum.SqlServer;
 
     /// <summary>
-    /// 密钥引用（不落明文连接串）。
+    /// 密钥引用（config: / env:）。
     /// </summary>
     [MaxLength(128)]
     [SugarColumn(ColumnDescription = "密钥引用", Length = 128, IsNullable = true)]
     public string? SecretRef { get; set; }
+
+    /// <summary>
+    /// 内联连接串（不走 SecretRef 时使用）。
+    /// </summary>
+    [MaxLength(1024)]
+    [SugarColumn(ColumnDescription = "连接串", Length = 1024, IsNullable = true)]
+    public string? ConnectionString { get; set; }
+
+    /// <summary>
+    /// 最近一次连通性测试状态。
+    /// </summary>
+    [SugarColumn(ColumnDescription = "最近测试状态")]
+    public DhConnectionTestStatusEnum LastTestStatus { get; set; } = DhConnectionTestStatusEnum.Unknown;
+
+    /// <summary>
+    /// 最近一次连通性测试时间。
+    /// </summary>
+    [SugarColumn(ColumnDescription = "最近测试时间", IsNullable = true)]
+    public DateTime? LastTestTime { get; set; }
+
+    /// <summary>
+    /// 最近一次连通性测试消息。
+    /// </summary>
+    [MaxLength(512)]
+    [SugarColumn(ColumnDescription = "最近测试消息", Length = 512, IsNullable = true)]
+    public string? LastTestMessage { get; set; }
 
     /// <summary>
     /// 是否只读。

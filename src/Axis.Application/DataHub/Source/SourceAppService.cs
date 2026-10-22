@@ -20,7 +20,8 @@ namespace Axis.Application.DataHub.Source;
 public sealed class SourceAppService(
     IRepository<DhSource> repository,
     ISqlSugarClient db,
-    ICurrentAccount currentAccount)
+    ICurrentAccount currentAccount,
+    SourceConnectionFactory connectionFactory)
     : BaseAppService<DhSource>(repository, db, currentAccount), ISourceAppService, IAutoInject
 {
     public async Task<SqlSugarPagedList<SourceDto>> PageAsync(SourcePageQuery query, CancellationToken ct = default)
@@ -36,6 +37,10 @@ public sealed class SourceAppService(
                 Code = item.Code,
                 SourceType = item.SourceType,
                 SecretRef = item.SecretRef,
+                HasConnectionString = item.ConnectionString != null,
+                LastTestStatus = item.LastTestStatus,
+                LastTestTime = item.LastTestTime,
+                LastTestMessage = item.LastTestMessage,
                 IsReadOnly = item.IsReadOnly,
                 OrderNo = item.OrderNo,
                 Status = item.Status,
@@ -65,22 +70,28 @@ public sealed class SourceAppService(
     public async Task CreateAsync(SaveSourceInput input, CancellationToken ct = default)
     {
         await EnsureCodeUniqueAsync(input.Code, null, ct);
-        await Db.Insertable(new DhSource
+
+        var entity = new DhSource
         {
             Id = YitIdHelper.NextId(),
             TenantId = CurrentAccount.TenantId,
             Name = input.Name,
             Code = input.Code,
             SourceType = input.SourceType,
-            SecretRef = input.SecretRef,
+            SecretRef = NormalizeOptional(input.SecretRef),
+            ConnectionString = NormalizeOptional(input.ConnectionString),
             IsReadOnly = input.IsReadOnly,
             OrderNo = input.OrderNo,
             Status = input.Status,
             Remark = input.Remark,
+            LastTestStatus = DhConnectionTestStatusEnum.Unknown,
             CreatedBy = CurrentAccount.Id,
             Creator = CurrentAccount.RealName,
             CreatedTime = DateTime.Now
-        }).ExecuteCommandAsync(ct);
+        };
+
+        EnsureConnectionConfigured(entity);
+        await Db.Insertable(entity).ExecuteCommandAsync(ct);
     }
 
     public async Task UpdateAsync(long id, SaveSourceInput input, CancellationToken ct = default)
@@ -92,7 +103,8 @@ public sealed class SourceAppService(
         entity.Name = input.Name;
         entity.Code = input.Code;
         entity.SourceType = input.SourceType;
-        entity.SecretRef = input.SecretRef;
+        entity.SecretRef = NormalizeOptional(input.SecretRef);
+        ApplyConnectionStringUpdate(entity, input.ConnectionString);
         entity.IsReadOnly = input.IsReadOnly;
         entity.OrderNo = input.OrderNo;
         entity.Status = input.Status;
@@ -100,6 +112,8 @@ public sealed class SourceAppService(
         entity.ModifiedBy = CurrentAccount.Id;
         entity.Modifier = CurrentAccount.RealName;
         entity.ModifiedTime = DateTime.Now;
+
+        EnsureConnectionConfigured(entity);
         await Repo.AsUpdateable(entity).ExecuteWithOptLockAsync(ct);
     }
 
@@ -110,6 +124,64 @@ public sealed class SourceAppService(
 
         var affected = await Db.Deleteable<DhSource>().Where(item => item.Id == id).ExecuteCommandAsync(ct);
         if (affected == 0) throw new BusinessException("数据源不存在");
+    }
+
+    public Task<TestSourceConnectionResultDto> TestConnectionAsync(
+        TestSourceConnectionInput input,
+        CancellationToken ct = default)
+        => connectionFactory.TestAsync(input, ct);
+
+    public async Task<TestSourceConnectionResultDto> TestConnectionByIdAsync(long id, CancellationToken ct = default)
+    {
+        var entity = await Repo.AsQueryable().Where(item => item.Id == id).FirstAsync(ct)
+                     ?? throw new BusinessException("数据源不存在");
+
+        var input = new TestSourceConnectionInput
+        {
+            SourceType = entity.SourceType,
+            SecretRef = entity.SecretRef,
+            ConnectionString = entity.ConnectionString
+        };
+
+        var result = await connectionFactory.TestAsync(input, ct);
+
+        entity.LastTestStatus = result.Success
+            ? DhConnectionTestStatusEnum.Success
+            : DhConnectionTestStatusEnum.Failed;
+        entity.LastTestTime = DateTime.Now;
+        entity.LastTestMessage = TrimStoredMessage(result.Message);
+        entity.ModifiedBy = CurrentAccount.Id;
+        entity.Modifier = CurrentAccount.RealName;
+        entity.ModifiedTime = DateTime.Now;
+        await Repo.AsUpdateable(entity).ExecuteCommandAsync(ct);
+
+        return result;
+    }
+
+    private static void ApplyConnectionStringUpdate(DhSource entity, string? connectionString)
+    {
+        // null/省略：保留；空字符串：清空；非空：替换
+        if (connectionString is null) return;
+        entity.ConnectionString = string.IsNullOrWhiteSpace(connectionString)
+            ? null
+            : connectionString.Trim();
+    }
+
+    private static void EnsureConnectionConfigured(DhSource entity)
+    {
+        if (entity.Status != StatusEnum.Enable) return;
+        if (string.IsNullOrWhiteSpace(entity.SecretRef) && string.IsNullOrWhiteSpace(entity.ConnectionString))
+            throw new BusinessException("启用状态的数据源必须配置密钥引用或连接串");
+    }
+
+    private static string? NormalizeOptional(string? value)
+        => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    private static string? TrimStoredMessage(string? message)
+    {
+        if (string.IsNullOrWhiteSpace(message)) return null;
+        message = message.ReplaceLineEndings(" ").Trim();
+        return message.Length > 512 ? message[..512] : message;
     }
 
     private async Task EnsureCodeUniqueAsync(string? code, long? excludedId, CancellationToken ct)

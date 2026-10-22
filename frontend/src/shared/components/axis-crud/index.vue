@@ -15,7 +15,7 @@
   } from '@/shared/components/axis-table'
   import { FormDialog } from '@/shared/components/form-dialog'
   import { Icon } from '@/shared/icons'
-  import { tryRequest } from '@/shared/http'
+  import { isHandledHttpError, tryRequest } from '@/shared/http'
   import { formatLocalDate } from '@/shared/utils/date'
   import { message } from '@/shared/utils/message'
 
@@ -235,7 +235,7 @@
   }
 
   // 只提取资源声明字段，日期以本地日历日期提交；编辑时附带 version
-  function buildSubmitData() {
+  async function buildSubmitData() {
     const data: Record<string, unknown> = {}
     flatFields.value.forEach(field => {
       const value = form[field.field]
@@ -245,7 +245,9 @@
     if (editing.value && form.version !== undefined && form.version !== null) {
       data.version = form.version
     }
-    return props.resource.beforeSubmit ? props.resource.beforeSubmit(data, editing.value) : data
+    return props.resource.beforeSubmit
+      ? await props.resource.beforeSubmit(data, editing.value)
+      : data
   }
 
   async function handleSubmit() {
@@ -257,18 +259,25 @@
     }
 
     submitting.value = true
-    const data = buildSubmitData()
-    const operation =
-      editing.value && editId.value
-        ? props.resource.update(editId.value, data)
-        : props.resource.create(data)
-    const [, error] = await tryRequest(operation)
-    submitting.value = false
-    if (error) return
+    try {
+      const data = await buildSubmitData()
+      const operation =
+        editing.value && editId.value
+          ? props.resource.update(editId.value, data)
+          : props.resource.create(data)
+      const [, error] = await tryRequest(operation)
+      if (error) return
 
-    message.success(editing.value ? '更新成功' : '新增成功')
-    formVisible.value = false
-    await tableRef.value?.reload()
+      message.success(editing.value ? '更新成功' : '新增成功')
+      formVisible.value = false
+      await tableRef.value?.reload()
+    } catch (error) {
+      if (!isHandledHttpError(error)) {
+        message.error(error instanceof Error && error.message ? error.message : '提交失败')
+      }
+    } finally {
+      submitting.value = false
+    }
   }
 
   async function handleDelete(row: AxisCrudRow) {
