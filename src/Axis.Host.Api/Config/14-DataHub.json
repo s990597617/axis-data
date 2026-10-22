@@ -1,0 +1,8 @@
+{
+  "DataHub": {
+    "Enabled": true,
+    "DefaultBatchSize": 1000,
+    "DiffDetectEnabled": false,
+    "AllowPlaintextSecrets": false
+  }
+}
