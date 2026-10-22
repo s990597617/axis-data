@@ -63,3 +63,19 @@ export function listSecretRefOptions() {
 export function listSourceLookup() {
   return request.get<DataHubLookupItem[]>({ url: '/datahub/source/lookup' })
 }
+
+/** 列出数据源表/视图（元数据）。objectType: 1=表 2=视图 3=查询(空)。 */
+export function listSourceObjects(sourceId: string, objectType: number) {
+  return request.get<DataHubLookupItem[]>({
+    url: /datahub/source//objects,
+    params: { objectType }
+  })
+}
+
+/** 列出数据源对象列（元数据）。 */
+export function listSourceColumns(sourceId: string, objectName: string) {
+  return request.get<DataHubLookupItem[]>({
+    url: /datahub/source//columns,
+    params: { objectName }
+  })
+}

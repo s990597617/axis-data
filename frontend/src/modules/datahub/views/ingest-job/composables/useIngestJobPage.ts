@@ -14,7 +14,7 @@ import {
   type AxisCrudResource
 } from '@/shared/components/axis-crud'
 import type { AxisTableColumn } from '@/shared/components/axis-table'
-import type { AxisFormOption } from '@/shared/components/axis-form'
+import type { AxisFormFieldContext, AxisFormOption } from '@/shared/components/axis-form'
 import { ref } from 'vue'
 
 const strategyOptions: AxisFormOption[] = [
@@ -22,6 +22,28 @@ const strategyOptions: AxisFormOption[] = [
   { label: '增量', value: 2 },
   { label: '差异检测', value: 3 }
 ]
+
+/** Cron 预设：值为 Quartz 6 段表达式；空串=不调度；__custom__=自定义。 */
+const CRON_CUSTOM = '__custom__'
+const cronPresetOptions: AxisFormOption[] = [
+  { label: '不调度（手动触发）', value: '' },
+  { label: '每 5 分钟', value: '0 */5 * * * ?' },
+  { label: '每 15 分钟', value: '0 */15 * * * ?' },
+  { label: '每小时', value: '0 0 * * * ?' },
+  { label: '每天 0 点', value: '0 0 0 * * ?' },
+  { label: '每天 8 点', value: '0 0 8 * * ?' },
+  { label: '每周一 8 点', value: '0 0 8 ? * MON' },
+  { label: '自定义', value: CRON_CUSTOM }
+]
+
+function resolveCronPreset(expression: unknown): string {
+  const raw = expression == null ? '' : String(expression).trim()
+  if (!raw) return ''
+  const hit = cronPresetOptions.find(
+    item => item.value !== CRON_CUSTOM && String(item.value) === raw
+  )
+  return hit ? String(hit.value) : CRON_CUSTOM
+}
 
 function toLookupOptions(items: DataHubLookupItem[] | undefined): AxisFormOption[] {
   return (items ?? []).map(item => ({ label: item.label, value: item.value }))
@@ -56,7 +78,18 @@ export function useIngestJobPage() {
       render: row => row.datasetName || row.datasetCode || asIdString(row.datasetId) || '-'
     },
     { key: 'strategy', title: '策略', dict: strategyOptions },
-    { key: 'cronExpression', title: 'Cron' },
+    {
+      key: 'cronExpression',
+      title: 'Cron',
+      render: row => {
+        const raw = String(row.cronExpression ?? '').trim()
+        if (!raw) return '不调度'
+        const preset = cronPresetOptions.find(
+          item => item.value !== CRON_CUSTOM && String(item.value) === raw
+        )
+        return preset ? String(preset.label) : raw
+      }
+    },
     { key: 'batchSize', title: '批大小', width: 90 },
     { key: 'orderNo', title: '排序', width: 80 },
     {
@@ -126,10 +159,37 @@ export function useIngestJobPage() {
             defaultValue: 1
           },
           {
+            field: 'cronPreset',
+            label: '调度频率',
+            component: 'select',
+            options: cronPresetOptions,
+            required: true,
+            defaultValue: '0 0 * * * ?',
+            help: '常用调度一键选择；需要特殊节奏时选「自定义」填写 Quartz 表达式',
+            componentProps: ((ctx: AxisFormFieldContext) => ({
+              filterable: true,
+              placeholder: '请选择调度频率',
+              onUpdateValue: (value: unknown) => {
+                ctx.setValue(value)
+                const preset = value == null ? '' : String(value)
+                if (preset !== CRON_CUSTOM) {
+                  ctx.model.cronExpression = preset
+                } else if (!String(ctx.model.cronExpression ?? '').trim()) {
+                  ctx.model.cronExpression = '0 0 * * * ?'
+                }
+              }
+            })) as unknown as Record<string, unknown>
+          },
+          {
             field: 'cronExpression',
             label: 'Cron 表达式',
-            defaultValue: '',
-            componentProps: { maxlength: 64, placeholder: '如 0 0 * * * ?' }
+            defaultValue: '0 0 * * * ?',
+            ifShow: model => String(model.cronPreset ?? '') === CRON_CUSTOM,
+            help: 'Quartz 6 段：秒 分 时 日 月 周，例如 0 0 8 * * ?',
+            componentProps: {
+              maxlength: 64,
+              placeholder: '如 0 0 * * * ?'
+            }
           },
           {
             field: 'batchSize',
@@ -173,11 +233,28 @@ export function useIngestJobPage() {
     ],
     onFormOpen: async ({ model }) => {
       model.datasetId = asIdString(model.datasetId) || null
+      const preset = resolveCronPreset(model.cronExpression)
+      model.cronPreset = preset
+      if (preset !== CRON_CUSTOM && preset !== '') {
+        model.cronExpression = preset
+      }
+      if (preset === '' && (model.cronExpression == null || model.cronExpression === undefined)) {
+        model.cronExpression = ''
+      }
       await loadDatasetOptions(model.datasetId)
     },
     beforeSubmit: data => {
       data.datasetId = asIdString(data.datasetId)
       if (!data.datasetId) throw new Error('请选择数据集')
+
+      const preset = data.cronPreset == null ? '' : String(data.cronPreset)
+      if (preset === CRON_CUSTOM) {
+        data.cronExpression =
+          data.cronExpression == null ? '' : String(data.cronExpression).trim()
+      } else {
+        data.cronExpression = preset
+      }
+      delete data.cronPreset
     },
     request: getIngestJobPage,
     create: data => createIngestJob(data as unknown as SaveIngestJobInput),
