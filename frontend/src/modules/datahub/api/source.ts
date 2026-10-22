@@ -41,3 +41,20 @@ export function updateSource(id: string, data: SaveSourceInput) {
 export function deleteSource(id: string) {
   return request.delete<void>({ url: `/datahub/source/${id}` })
 }
+
+/** 密钥引用可选项。 */
+export interface SecretRefOptionItem {
+  label: string
+  value: string
+  configured: boolean
+}
+
+export interface SecretRefOptions {
+  configKeys: SecretRefOptionItem[]
+  envKeys: SecretRefOptionItem[]
+}
+
+/** 从后端配置/环境变量动态加载可选密钥键（不含明文）。 */
+export function listSecretRefOptions() {
+  return request.get<SecretRefOptions>({ url: '/datahub/source/secret-ref-options' })
+}

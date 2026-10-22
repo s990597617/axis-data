@@ -3,7 +3,11 @@
     "Enabled": true,
     "DefaultBatchSize": 1000,
     "DiffDetectEnabled": false,
-    "AllowPlaintextSecrets": false
+    "AllowPlaintextSecrets": false,
+    "Sources": {
+      "Default": "",
+      "Ods": ""
+    }
   },
   "ConnectionStrings": {
     "U8Readonly": "",

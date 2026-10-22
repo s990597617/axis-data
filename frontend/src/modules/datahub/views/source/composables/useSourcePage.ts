@@ -1,8 +1,10 @@
-import type { SourceDto, SaveSourceInput } from '@/modules/datahub/api/source'
+import { ref } from 'vue'
+import type { SourceDto, SaveSourceInput, SecretRefOptionItem } from '@/modules/datahub/api/source'
 import {
   createSource,
   deleteSource,
   getSourcePage,
+  listSecretRefOptions,
   updateSource
 } from '@/modules/datahub/api/source'
 import { dataHubPermissionCodes } from '@/modules/datahub/permissions/codes'
@@ -28,20 +30,14 @@ const secretKindOptions: AxisFormOption[] = [
   { label: '暂不配置', value: 'none' }
 ]
 
-const configKeyPresets: AxisFormOption[] = [
-  { label: 'ConnectionStrings:U8Readonly（用友 U8 只读）', value: 'ConnectionStrings:U8Readonly' },
-  { label: 'ConnectionStrings:ErpReadonly', value: 'ConnectionStrings:ErpReadonly' },
-  { label: 'DataHub:Sources:Default', value: 'DataHub:Sources:Default' },
-  { label: 'DataHub:Sources:Ods', value: 'DataHub:Sources:Ods' }
-]
-
-const envKeyPresets: AxisFormOption[] = [
-  { label: 'DH_SOURCE_U8_READONLY', value: 'DH_SOURCE_U8_READONLY' },
-  { label: 'DH_SOURCE_ERP_READONLY', value: 'DH_SOURCE_ERP_READONLY' },
-  { label: 'DH_SOURCE_DEFAULT', value: 'DH_SOURCE_DEFAULT' }
-]
-
 type SecretKind = 'config' | 'env' | 'none'
+
+function toFormOptions(items: SecretRefOptionItem[] | undefined): AxisFormOption[] {
+  return (items ?? []).map(item => ({
+    label: item.label,
+    value: item.value
+  }))
+}
 
 function parseSecretRef(secretRef: unknown): {
   secretKind: SecretKind
@@ -50,25 +46,13 @@ function parseSecretRef(secretRef: unknown): {
 } {
   const raw = String(secretRef ?? '').trim()
   if (!raw) {
-    return {
-      secretKind: 'none',
-      secretConfigKey: 'ConnectionStrings:U8Readonly',
-      secretEnvKey: 'DH_SOURCE_U8_READONLY'
-    }
+    return { secretKind: 'none', secretConfigKey: '', secretEnvKey: '' }
   }
   if (raw.startsWith('env:')) {
-    return {
-      secretKind: 'env',
-      secretConfigKey: 'ConnectionStrings:U8Readonly',
-      secretEnvKey: raw.slice(4)
-    }
+    return { secretKind: 'env', secretConfigKey: '', secretEnvKey: raw.slice(4) }
   }
   const key = raw.startsWith('config:') ? raw.slice(7) : raw
-  return {
-    secretKind: 'config',
-    secretConfigKey: key,
-    secretEnvKey: 'DH_SOURCE_U8_READONLY'
-  }
+  return { secretKind: 'config', secretConfigKey: key, secretEnvKey: '' }
 }
 
 function composeSecretRef(
@@ -95,6 +79,20 @@ function formatSecretRef(secretRef: unknown): string {
 }
 
 export function useSourcePage() {
+  const configKeyOptions = ref<AxisFormOption[]>([])
+  const envKeyOptions = ref<AxisFormOption[]>([])
+
+  async function loadSecretOptions() {
+    try {
+      const data = await listSecretRefOptions()
+      configKeyOptions.value = toFormOptions(data?.configKeys)
+      envKeyOptions.value = toFormOptions(data?.envKeys)
+    } catch {
+      configKeyOptions.value = []
+      envKeyOptions.value = []
+    }
+  }
+
   const columns: AxisTableColumn<SourceDto>[] = [
     { key: 'name', title: '名称', search: { field: 'keyword', placeholder: '名称/编码' } },
     { key: 'code', title: '编码' },
@@ -204,7 +202,7 @@ export function useSourcePage() {
         title: '连接密钥',
         icon: 'ant-design:safety-certificate-outlined',
         description:
-          '连接串不入库。先选来源，再选或输入键名；保存时自动生成引用（config:… / env:…）。',
+          '下拉选项从后端配置动态加载（ConnectionStrings、DataHub:Sources，以及 DH_SOURCE_* 环境变量），也可手输新键。',
         columns: 1,
         fields: [
           {
@@ -214,48 +212,67 @@ export function useSourcePage() {
             options: secretKindOptions,
             required: true,
             defaultValue: 'config',
-            help: '推荐「应用配置」：真实连接串写在服务器 appsettings（或配置中心），这里只填配置键。'
+            help: '推荐「应用配置」：真实连接串写在服务器配置，这里只选配置键。'
           },
           {
             field: 'secretConfigKey',
             label: '配置键',
             component: 'select',
-            options: configKeyPresets,
+            options: () => configKeyOptions.value,
             required: true,
-            defaultValue: 'ConnectionStrings:U8Readonly',
+            defaultValue: '',
             ifShow: model => model.secretKind === 'config',
             componentProps: {
               filterable: true,
               tag: true,
               clearable: true,
-              placeholder: '选择预设，或直接输入自定义配置键'
+              placeholder: '从配置加载，或输入新键如 ConnectionStrings:MyDb'
             },
-            help: '例：在配置里增加 ConnectionStrings:U8Readonly = 真实连接串，这里选中该项即可。保存值为 config:配置键。'
+            help: '在 14-DataHub.json 等配置中增加键后，重启 API 即可出现在列表；标「未配置」表示键在但值为空。'
           },
           {
             field: 'secretEnvKey',
             label: '环境变量名',
             component: 'select',
-            options: envKeyPresets,
+            options: () => envKeyOptions.value,
             required: true,
-            defaultValue: 'DH_SOURCE_U8_READONLY',
+            defaultValue: '',
             ifShow: model => model.secretKind === 'env',
             componentProps: {
               filterable: true,
               tag: true,
               clearable: true,
-              placeholder: '选择预设，或直接输入变量名'
+              placeholder: '选择已有 DH_SOURCE_* 变量，或输入新变量名'
             },
-            help: '在运行环境设置该变量为完整连接串。保存值为 env:变量名。'
+            help: '仅自动列出以 DH_SOURCE_ 开头的环境变量。'
           }
         ]
       }
     ],
-    onFormOpen: ({ model }) => {
+    onFormOpen: async ({ model }) => {
+      await loadSecretOptions()
       const parsed = parseSecretRef(model.secretRef)
       model.secretKind = parsed.secretKind
       model.secretConfigKey = parsed.secretConfigKey
       model.secretEnvKey = parsed.secretEnvKey
+      if (
+        parsed.secretConfigKey &&
+        !configKeyOptions.value.some(o => o.value === parsed.secretConfigKey)
+      ) {
+        configKeyOptions.value = [
+          { label: parsed.secretConfigKey, value: parsed.secretConfigKey },
+          ...configKeyOptions.value
+        ]
+      }
+      if (
+        parsed.secretEnvKey &&
+        !envKeyOptions.value.some(o => o.value === parsed.secretEnvKey)
+      ) {
+        envKeyOptions.value = [
+          { label: parsed.secretEnvKey, value: parsed.secretEnvKey },
+          ...envKeyOptions.value
+        ]
+      }
     },
     beforeSubmit: data => {
       data.secretRef = composeSecretRef(

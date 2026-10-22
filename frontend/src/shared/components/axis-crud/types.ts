@@ -6,7 +6,7 @@ import type {
   AxisTableRow,
   AxisTableRowAction
 } from '@/shared/components/axis-table'
-import type { AxisFormComponent, AxisFormOption } from '@/shared/components/axis-form'
+import type { AxisFormComponent, AxisFormOption, AxisFormResolvable } from '@/shared/components/axis-form'
 import type { CrudPermissionSet } from '@/modules/system/permissions/codes'
 
 // 通用 CRUD 表格行（支持树形 parentId/children）
@@ -24,7 +24,7 @@ export interface AxisCrudField {
   component?: AxisFormComponent
   required?: boolean
   defaultValue?: unknown
-  options?: AxisFormOption[] | 'tree'
+  options?: AxisFormResolvable<AxisFormOption[]> | 'tree'
   fullWidth?: boolean
   span?: string | number
   help?: string
