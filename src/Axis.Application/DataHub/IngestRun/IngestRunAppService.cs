@@ -27,6 +27,7 @@ public sealed class IngestRunAppService(
         var page = await Repo.AsQueryable()
             .WhereIF(!string.IsNullOrWhiteSpace(query.Keyword), item => item.Name.Contains(query.Keyword!) || (item.Code != null && item.Code.Contains(query.Keyword!)))
             .WhereIF(query.Status.HasValue, item => item.Status == query.Status!.Value)
+            .WhereIF(query.JobId.HasValue, item => item.JobId == query.JobId!.Value)
             .OrderBy(item => item.CreatedTime, OrderByType.Desc)
             .Select(item => new IngestRunDto
             {

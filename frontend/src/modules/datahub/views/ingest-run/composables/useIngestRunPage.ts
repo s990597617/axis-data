@@ -15,7 +15,8 @@ import {
 } from '@/shared/components/axis-crud'
 import type { AxisTableColumn } from '@/shared/components/axis-table'
 import type { AxisFormOption } from '@/shared/components/axis-form'
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
 
 const runStatusOptions: AxisFormOption[] = [
   { label: '待执行', value: 1 },
@@ -35,7 +36,15 @@ function asIdString(value: unknown): string {
 }
 
 export function useIngestRunPage() {
+  const route = useRoute()
+  const initialJobId = ref<string>('')
   const jobOptions = ref<AxisFormOption[]>([])
+
+  onMounted(() => {
+    const raw = route.query.jobId
+    const id = raw == null ? '' : String(raw).trim()
+    if (id) initialJobId.value = id
+  })
 
   async function loadJobOptions(currentId?: unknown) {
     try {
@@ -223,7 +232,13 @@ export function useIngestRunPage() {
       if (data.name === '') data.name = undefined
       if (data.code === '') data.code = undefined
     },
-    request: getIngestRunPage,
+    request: params => {
+      const merged = { ...params }
+      if (initialJobId.value && merged.jobId == null && merged.JobId == null) {
+        merged.jobId = initialJobId.value
+      }
+      return getIngestRunPage(merged)
+    },
     create: data => createIngestRun(data as unknown as SaveIngestRunInput),
     update: (id, data) => updateIngestRun(id, data as unknown as SaveIngestRunInput),
     remove: deleteIngestRun

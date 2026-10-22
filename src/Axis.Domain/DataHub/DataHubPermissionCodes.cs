@@ -65,6 +65,9 @@ public static class DataHubPermissionCodes
 
         [PermissionAction("删除", Order = 4)]
         public const string Delete = "datahub:ingest-job:delete";
+
+        [PermissionAction("执行", Order = 5)]
+        public const string Run = "datahub:ingest-job:run";
     }
 
     /// <summary>

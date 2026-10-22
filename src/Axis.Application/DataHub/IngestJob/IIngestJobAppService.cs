@@ -19,4 +19,9 @@ public interface IIngestJobAppService
     Task UpdateAsync(long id, SaveIngestJobInput input, CancellationToken ct = default);
 
     Task DeleteAsync(long id, CancellationToken ct = default);
+
+    /// <summary>
+    /// 手动触发一次采集执行。
+    /// </summary>
+    Task<TriggerIngestJobResultDto> TriggerRunAsync(long id, CancellationToken ct = default);
 }

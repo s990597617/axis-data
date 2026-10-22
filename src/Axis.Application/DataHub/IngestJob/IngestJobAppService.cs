@@ -20,7 +20,8 @@ namespace Axis.Application.DataHub.IngestJob;
 public sealed class IngestJobAppService(
     IRepository<DhIngestJob> repository,
     ISqlSugarClient db,
-    ICurrentAccount currentAccount)
+    ICurrentAccount currentAccount,
+    IIngestJobRunner ingestJobRunner)
     : BaseAppService<DhIngestJob>(repository, db, currentAccount), IIngestJobAppService, IAutoInject
 {
     public async Task<SqlSugarPagedList<IngestJobDto>> PageAsync(IngestJobPageQuery query, CancellationToken ct = default)
@@ -121,6 +122,9 @@ public sealed class IngestJobAppService(
         var affected = await Db.Deleteable<DhIngestJob>().Where(item => item.Id == id).ExecuteCommandAsync(ct);
         if (affected == 0) throw new BusinessException("采集任务不存在");
     }
+
+    public Task<TriggerIngestJobResultDto> TriggerRunAsync(long id, CancellationToken ct = default)
+        => ingestJobRunner.ExecuteAsync(id, ct);
 
     private async Task FillDatasetNamesAsync(IEnumerable<IngestJobDto> items, CancellationToken ct)
     {

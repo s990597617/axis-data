@@ -7,12 +7,12 @@
 
   /* ============ 状态 & 引用 ============ */
 
-  const { resource } = useIngestJobPage()
+  const { resource, pageRef } = useIngestJobPage()
 </script>
 
 <template>
   <div class="ingest-job-page">
-    <AxisCrudPage :resource="resource" />
+    <AxisCrudPage ref="pageRef" :resource="resource" />
   </div>
 </template>
 
