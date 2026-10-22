@@ -273,6 +273,7 @@ export function useIngestJobPage() {
         data.cronExpression = preset
       }
       delete data.cronPreset
+      return data
     },
     request: getIngestJobPage,
     create: data => createIngestJob(data as unknown as SaveIngestJobInput),

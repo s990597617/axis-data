@@ -231,6 +231,7 @@ export function useIngestRunPage() {
       if (!data.jobId) throw new Error('请选择采集任务')
       if (data.name === '') data.name = undefined
       if (data.code === '') data.code = undefined
+      return data
     },
     request: params => {
       const merged = { ...params }

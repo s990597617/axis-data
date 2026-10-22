@@ -278,9 +278,10 @@
     if (editing.value && form.version !== undefined && form.version !== null) {
       data.version = form.version
     }
-    return props.resource.beforeSubmit
-      ? await props.resource.beforeSubmit(data, editing.value)
-      : data
+    if (!props.resource.beforeSubmit) return data
+    const next = await props.resource.beforeSubmit(data, editing.value)
+    // 业务钩子常原地改 data；未显式 return 时仍提交原对象，避免 body 变成 undefined
+    return next ?? data
   }
 
   async function validateCurrentStep() {

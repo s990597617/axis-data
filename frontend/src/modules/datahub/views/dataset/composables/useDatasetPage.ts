@@ -388,6 +388,7 @@ export function useDatasetPage() {
       if (Number(data.updateStrategy) !== 2) {
         data.incrementalField = ''
       }
+      return data
     },
     request: getDatasetPage,
     create: data => createDataset(data as unknown as SaveDatasetInput),
