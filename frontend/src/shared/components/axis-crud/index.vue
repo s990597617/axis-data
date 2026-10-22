@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { computed, nextTick, reactive, ref } from 'vue'
-  import { NButton, NSpace } from 'naive-ui'
+  import { NButton, NSpace, NSteps, NStep } from 'naive-ui'
 
   import {
     AxisForm,
@@ -39,6 +39,7 @@
   // 树表受控展开；异步加载后 defaultExpandAll 无效，需主动写入
   const expandedRowKeys = ref<Array<string | number>>([])
   const form = reactive<Record<string, unknown>>({})
+  const wizardStepIndex = ref(0)
 
   /* ============ 视图模型 ============ */
 
@@ -53,6 +54,13 @@
     }
     return subtitle
   })
+
+  const formSteps = computed(() => props.resource.formSteps ?? [])
+  const hasWizard = computed(() => formSteps.value.length > 0)
+  const isLastWizardStep = computed(
+    () => !hasWizard.value || wizardStepIndex.value >= formSteps.value.length - 1
+  )
+  const wizardCurrentStep = computed(() => formSteps.value[wizardStepIndex.value])
 
   // 叶子不留空 children，避免 Naive 误显示展开箭头
   function pruneEmptyChildren(rows: AxisCrudRow[]): AxisCrudRow[] {
@@ -112,7 +120,7 @@
     ...buildTreeOptions(buildRowTree(flatRows.value))
   ])
 
-  // 分区优先；无分区时回退扁平 fields
+  // 分区优先；无分区时回退扁平 fields（始终包含全部字段，供默认值/提交）
   const flatFields = computed<AxisCrudField[]>(() => {
     if (props.resource.formSections?.length) {
       return props.resource.formSections.flatMap(section => section.fields)
@@ -142,7 +150,7 @@
     props.resource.formSections?.length ? [] : flatFields.value.map(toFormSchema)
   )
 
-  const formSections = computed<AxisFormSection[]>(() =>
+  const allFormSections = computed<AxisFormSection[]>(() =>
     (props.resource.formSections ?? []).map(section => ({
       key: section.key,
       title: section.title,
@@ -152,6 +160,20 @@
       schemas: section.fields.map(toFormSchema)
     }))
   )
+
+  // 向导模式下只渲染当前步骤对应分区
+  const formSections = computed<AxisFormSection[]>(() => {
+    if (!hasWizard.value) return allFormSections.value
+    const stepKey = wizardCurrentStep.value?.key
+    if (!stepKey) return allFormSections.value
+    return allFormSections.value.filter(section => section.key === stepKey)
+  })
+
+  const currentStepFieldKeys = computed(() => {
+    const section = formSections.value[0]
+    if (!section) return [] as string[]
+    return section.schemas.map(schema => schema.field)
+  })
 
   const allowCreate = computed(() => {
     const rule = props.resource.canCreate
@@ -208,6 +230,7 @@
     resetForm()
     editing.value = Boolean(row)
     editId.value = row?.id
+    wizardStepIndex.value = 0
 
     if (row) {
       flatFields.value.forEach(field => {
@@ -248,6 +271,37 @@
     return props.resource.beforeSubmit
       ? await props.resource.beforeSubmit(data, editing.value)
       : data
+  }
+
+  async function validateCurrentStep() {
+    const keys = new Set(currentStepFieldKeys.value)
+    if (!keys.size) return true
+    try {
+      await formRef.value?.validate(
+        undefined,
+        rule => {
+          const key = String((rule as { key?: string }).key ?? '')
+          return !key || keys.has(key)
+        }
+      )
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  async function goWizardNext() {
+    if (!hasWizard.value || isLastWizardStep.value) return
+    const ok = await validateCurrentStep()
+    if (!ok) return
+    wizardStepIndex.value += 1
+    await nextTick()
+    formRef.value?.restoreValidation()
+  }
+
+  function goWizardPrev() {
+    if (!hasWizard.value || wizardStepIndex.value <= 0) return
+    wizardStepIndex.value -= 1
   }
 
   async function handleSubmit() {
@@ -334,15 +388,39 @@
     <FormDialog
       v-model="formVisible"
       layout="sectioned"
+      :presentation="resource.formPresentation ?? 'modal'"
       :title="formTitle"
       :subtitle="formSubtitle"
       icon="ant-design:form-outlined"
       :width="resource.formWidth ?? 760"
       :confirm-loading="submitting"
       confirm-text="保存"
+      :show-confirm="!hasWizard"
       :mask-closable="!submitting"
       @confirm="handleSubmit"
     >
+      <div v-if="hasWizard" class="axis-crud-wizard">
+        <n-steps
+          class="axis-crud-wizard__steps"
+          size="small"
+          :current="wizardStepIndex + 1"
+          :status="submitting ? 'wait' : 'process'"
+        >
+          <n-step
+            v-for="(step, index) in formSteps"
+            :key="step.key"
+            :title="step.title"
+            :status="
+              index < wizardStepIndex ? 'finish' : index === wizardStepIndex ? 'process' : 'wait'
+            "
+          />
+        </n-steps>
+        <div class="axis-crud-wizard__meta">
+          第 {{ wizardStepIndex + 1 }}/{{ formSteps.length }} 步
+          <template v-if="wizardCurrentStep"> · {{ wizardCurrentStep.title }}</template>
+        </div>
+      </div>
+
       <AxisForm
         ref="formRef"
         :model="form"
@@ -356,10 +434,55 @@
           <slot :name="name" v-bind="{ ...(slotData || {}), editing }" />
         </template>
       </AxisForm>
+
+      <template v-if="hasWizard" #footer="{ cancel }">
+        <n-button :disabled="submitting" @click="cancel">取消</n-button>
+        <n-button
+          v-if="wizardStepIndex > 0"
+          :disabled="submitting"
+          @click="goWizardPrev"
+        >
+          上一步
+        </n-button>
+        <n-button
+          v-if="!isLastWizardStep"
+          type="primary"
+          :disabled="submitting"
+          @click="goWizardNext"
+        >
+          下一步
+        </n-button>
+        <n-button
+          v-else
+          type="primary"
+          :loading="submitting"
+          @click="handleSubmit"
+        >
+          保存
+        </n-button>
+      </template>
     </FormDialog>
   </div>
 </template>
 
 <style scoped lang="scss">
   @use './styles/index.scss';
+
+  .axis-crud-wizard {
+    margin-bottom: 12px;
+    padding: 12px 14px 10px;
+    border: 1px solid color-mix(in srgb, var(--axis-border-color) 80%, transparent);
+    border-radius: var(--axis-border-radius, 6px);
+    background: var(--axis-card-color);
+
+    &__steps {
+      margin-bottom: 8px;
+    }
+
+    &__meta {
+      color: var(--axis-text-color-3);
+      font-size: 12px;
+      line-height: 18px;
+    }
+  }
 </style>

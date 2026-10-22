@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { computed, provide } from 'vue'
   import type { CSSProperties } from 'vue'
-  import { NButton, NModal, NSpin, NTag } from 'naive-ui'
+  import { NButton, NDrawer, NDrawerContent, NModal, NSpin, NTag } from 'naive-ui'
 
   import { Icon } from '@/shared/icons'
 
@@ -16,8 +16,9 @@
     iconTheme: 'primary',
     statusType: 'default',
     width: 700,
-    maxBodyHeight: 'min(68vh, 720px)',
     layout: 'default',
+    presentation: 'modal',
+    drawerPlacement: 'right',
     loading: false,
     draggable: true,
     maskClosable: false,
@@ -41,7 +42,7 @@
     afterLeave: []
   }>()
 
-  defineSlots<{
+  const slots = defineSlots<{
     default?: () => unknown
     'header-extra'?: () => unknown
     footer?: (props: { close: () => void; cancel: () => void; confirm: () => void }) => unknown
@@ -50,15 +51,36 @@
   const layout = computed(() => props.layout)
   provide(formDialogLayoutKey, layout)
 
+  const isDrawer = computed(() => props.presentation === 'drawer')
+
   const dialogStyle = computed<CSSProperties>(() => ({
     width: toCssSize(props.width),
     maxWidth: 'calc(100vw - 32px)'
   }))
 
+  const drawerWidth = computed(() =>
+    typeof props.width === 'number' ? `min(${props.width}px, 100vw)` : props.width
+  )
+
+  const resolvedMaxBodyHeight = computed(() => {
+    if (props.maxBodyHeight !== undefined && props.maxBodyHeight !== null && props.maxBodyHeight !== '') {
+      return toCssSize(props.maxBodyHeight)
+    }
+    return isDrawer.value ? 'none' : 'min(68vh, 720px)'
+  })
+
   const bodyStyle = computed(() => ({
-    maxHeight: toCssSize(props.maxBodyHeight),
+    maxHeight: resolvedMaxBodyHeight.value,
+    ...(isDrawer.value ? { flex: '1 1 auto', height: '100%' } : null),
     ...props.bodyStyle
   }))
+
+  const rootClass = computed(() => [
+    'form-dialog',
+    `form-dialog--${layout.value}`,
+    isDrawer.value ? 'form-dialog--drawer' : 'form-dialog--modal',
+    props.extraClass
+  ])
 
   function toCssSize(value: string | number) {
     return typeof value === 'number' ? `${value}px` : value
@@ -92,10 +114,11 @@
 
 <template>
   <n-modal
+    v-if="!isDrawer"
     :show="modelValue"
     preset="card"
     :style="dialogStyle"
-    :class="['form-dialog', `form-dialog--${layout}`, extraClass]"
+    :class="rootClass"
     :draggable="draggable"
     :mask-closable="maskClosable"
     :close-on-esc="closeOnEsc"
@@ -149,6 +172,68 @@
       </div>
     </template>
   </n-modal>
+
+  <n-drawer
+    v-else
+    :show="modelValue"
+    :width="drawerWidth"
+    :placement="drawerPlacement"
+    :mask-closable="maskClosable"
+    :close-on-esc="closeOnEsc"
+    :display-directive="destroyOnClose ? 'if' : 'show'"
+    @update:show="updateVisible"
+    @after-leave="emit('afterLeave')"
+  >
+    <n-drawer-content
+      closable
+      :native-scrollbar="false"
+      :class="[...rootClass, 'form-dialog__drawer-content']"
+      body-content-class="form-dialog__drawer-body"
+      :body-content-style="{ padding: 0 }"
+    >
+      <template #header>
+        <div class="form-dialog__header">
+          <div v-if="icon" class="form-dialog__header-icon" :class="`is-${iconTheme}`">
+            <Icon v-if="typeof icon === 'string'" :icon="icon" />
+            <component :is="icon" v-else />
+          </div>
+          <div class="form-dialog__titles">
+            <div class="form-dialog__title-row">
+              <span class="form-dialog__title">{{ title }}</span>
+              <n-tag v-if="statusText" size="small" round :type="statusType">
+                {{ statusText }}
+              </n-tag>
+            </div>
+            <span v-if="subtitle" class="form-dialog__subtitle">{{ subtitle }}</span>
+          </div>
+          <slot name="header-extra" />
+        </div>
+      </template>
+
+      <div class="form-dialog__body" :style="bodyStyle">
+        <n-spin :show="loading" class="form-dialog__spin form-dialog__spin--fill">
+          <slot />
+        </n-spin>
+      </div>
+
+      <template v-if="showFooter || slots.footer" #footer>
+        <div class="form-dialog__footer">
+          <slot name="footer" :close="close" :cancel="cancel" :confirm="confirm">
+            <n-button v-if="showCancel" @click="cancel">{{ cancelText }}</n-button>
+            <n-button
+              v-if="showConfirm"
+              type="primary"
+              :loading="confirmLoading"
+              :disabled="confirmDisabled"
+              @click="confirm"
+            >
+              {{ confirmText }}
+            </n-button>
+          </slot>
+        </div>
+      </template>
+    </n-drawer-content>
+  </n-drawer>
 </template>
 
 <style scoped lang="scss">
@@ -244,6 +329,17 @@
 
     &__spin {
       min-height: 60px;
+
+      &--fill {
+        min-height: 0;
+        height: 100%;
+
+        :deep(.n-spin-container),
+        :deep(.n-spin-content) {
+          min-height: 0;
+          height: 100%;
+        }
+      }
     }
 
     &__footer {
@@ -251,6 +347,42 @@
       align-items: center;
       justify-content: flex-end;
       gap: 10px;
+    }
+  }
+
+  :deep(.form-dialog__drawer-body) {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  :deep(.form-dialog__drawer-content) {
+    height: 100%;
+
+    .n-drawer-body-content-wrapper {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      min-height: 0;
+      height: 100%;
+      overflow: hidden;
+    }
+  }
+
+  .form-dialog--drawer {
+    .form-dialog__body {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .form-dialog__header {
+      padding-right: 32px;
     }
   }
 

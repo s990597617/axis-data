@@ -29,10 +29,10 @@ import { tryRequest } from '@/shared/http'
 import { message } from '@/shared/utils/message'
 
 const sourceTypeOptions: AxisFormOption[] = [
-  { label: 'PostgreSQL（常用关系库）', value: 2 },
+  { label: 'PostgreSQL 常用', value: 2 },
   { label: 'MySQL', value: 3 },
   { label: 'SQL Server', value: 1 },
-  { label: 'HTTP / API', value: 4 }
+  { label: 'HTTP API', value: 4 }
 ]
 
 const sourceTypeDict: AxisFormOption[] = [
@@ -285,11 +285,18 @@ export function useSourcePage() {
     entityName: '数据源',
     permissions: dataHubPermissionCodes.source,
     columns,
+    formPresentation: 'drawer',
+    formWidth: 560,
     formSubtitle: ({ editing, model }) =>
       editing
-        ? `编辑数据源「${String((model as Record<string, unknown>).name || '-')}」`
-        : '向导：先选类型 → 配置连接 → 测试 → 填写基本信息',
-    formWidth: 880,
+        ? `编辑「${String((model as Record<string, unknown>).name || '-')}」`
+        : '新建数据源',
+    formSteps: [
+      { key: 'type', title: '选择类型' },
+      { key: 'connect', title: '配置连接' },
+      { key: 'test', title: '测试连通' },
+      { key: 'basic', title: '基本信息' }
+    ],
     actionColumn: {
       width: 180,
       maxInline: 3
@@ -307,9 +314,9 @@ export function useSourcePage() {
     formSections: [
       {
         key: 'type',
-        title: '① 选择类型',
+        title: '选择类型',
         icon: 'ant-design:appstore-outlined',
-        description: '先选类型，再配置连接；不同类型字段不同。',
+        description: '先选类型，后续连接字段会随之变化。',
         columns: 1,
         fields: [
           {
@@ -319,10 +326,10 @@ export function useSourcePage() {
             options: sourceTypeOptions,
             required: true,
             defaultValue: 2,
-            help: 'PostgreSQL / MySQL / SQL Server 走库表元数据；HTTP 请在数据集中用「查询」+ SQL。',
+            help: '关系库可拉表/字段元数据；HTTP 请在数据集中用「查询」+ SQL。',
             componentProps: ((ctx: AxisFormFieldContext) => ({
               onUpdateValue: (value: number) => {
-                if (!ctx.model.port && isDbType(value)) {
+                if (isDbType(value)) {
                   ctx.model.port = defaultPort(value)
                 }
               }
@@ -331,10 +338,11 @@ export function useSourcePage() {
         ]
       },
       {
-        key: 'mode',
-        title: '② 连接方式',
+        key: 'connect',
+        title: '配置连接',
         icon: 'ant-design:link-outlined',
-        columns: 1,
+        description: '推荐密钥引用；也可临时填写结构化连接信息。',
+        columns: 2,
         fields: [
           {
             field: 'connectionMode',
@@ -343,18 +351,9 @@ export function useSourcePage() {
             options: connectionModeOptions,
             required: true,
             defaultValue: 'secret',
-            help: '推荐密钥引用：真实连接串写在服务器配置，这里只选配置键。'
-          }
-        ]
-      },
-      {
-        key: 'secret',
-        title: '③ 连接信息 · 密钥',
-        icon: 'ant-design:safety-certificate-outlined',
-        description:
-          '下拉选项从后端配置动态加载（ConnectionStrings、DataHub:Sources，以及 DH_SOURCE_* 环境变量），也可手输新键。',
-        columns: 1,
-        fields: [
+            fullWidth: true,
+            help: '密钥引用：真实连接串写在服务器配置，这里只选配置键。'
+          },
           {
             field: 'secretKind',
             label: '密钥来源',
@@ -362,6 +361,7 @@ export function useSourcePage() {
             options: secretKindOptions,
             required: true,
             defaultValue: 'config',
+            fullWidth: true,
             ifShow: model => model.connectionMode === 'secret'
           },
           {
@@ -371,6 +371,7 @@ export function useSourcePage() {
             options: () => configKeyOptions.value,
             required: true,
             defaultValue: '',
+            fullWidth: true,
             ifShow: model => model.connectionMode === 'secret' && model.secretKind === 'config',
             componentProps: {
               filterable: true,
@@ -387,6 +388,7 @@ export function useSourcePage() {
             options: () => envKeyOptions.value,
             required: true,
             defaultValue: '',
+            fullWidth: true,
             ifShow: model => model.connectionMode === 'secret' && model.secretKind === 'env',
             componentProps: {
               filterable: true,
@@ -395,16 +397,7 @@ export function useSourcePage() {
               placeholder: '选择已有 DH_SOURCE_* 变量，或输入新变量名'
             },
             help: '仅自动列出以 DH_SOURCE_ 开头的环境变量。'
-          }
-        ]
-      },
-      {
-        key: 'inline',
-        title: '③ 连接信息 · 结构化',
-        icon: 'ant-design:database-outlined',
-        description: '连接串仅保存在服务端，列表不回显明文。编辑时请重新填写密码。',
-        columns: 2,
-        fields: [
+          },
           {
             field: 'host',
             label: '主机',
@@ -460,8 +453,9 @@ export function useSourcePage() {
       },
       {
         key: 'test',
-        title: '④ 连通性',
+        title: '测试连通',
         icon: 'ant-design:api-outlined',
+        description: '建议保存前先测通，失败会阻止保存。',
         columns: 1,
         fields: [
           {
@@ -477,13 +471,13 @@ export function useSourcePage() {
             component: 'textarea',
             defaultValue: '',
             disabled: () => true,
-            componentProps: { rows: 2, placeholder: '保存或行内「测试连接」后可在此看到说明' }
+            componentProps: { rows: 3, placeholder: '保存或行内「测试连接」后可在此看到说明' }
           }
         ]
       },
       {
         key: 'basic',
-        title: '⑤ 基本信息',
+        title: '基本信息',
         icon: 'ant-design:idcard-outlined',
         columns: 2,
         fields: [
@@ -619,7 +613,7 @@ export function useSourcePage() {
 
       if (data.runTest) {
         const payload = buildTestPayload(data)
-        // 编辑 + 密钥模式可直接测；编辑 + 内联但未重填时，提示用户先测或关掉开关
+        // 编辑 + 内联但未重填时，跳过以免误报
         if (
           mode === 'inline' &&
           editing &&
@@ -627,7 +621,7 @@ export function useSourcePage() {
           !payload.host &&
           !payload.baseUrl
         ) {
-          // 用已保存实体测：交给行内测试；此处跳过以免误报
+          // no-op
         } else {
           const [result, error] = await tryRequest(testSourceConnection(payload), {
             fallbackMessage: '连通性测试失败',

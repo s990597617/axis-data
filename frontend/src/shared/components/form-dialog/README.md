@@ -1,6 +1,10 @@
 # FormDialog
 
-面向新增、编辑等表单场景的通用弹窗，内置提交状态与标准底部操作区。
+新增/编辑等表单场景的通用容器：统一提交状态、标题区与底部操作。
+
+支持两种呈现：
+- `presentation="modal"`（默认）：居中卡片弹窗
+- `presentation="drawer"`：右侧（或左侧）侧滑抽屉，适合分步向导与长表单
 
 ```vue
 <script setup lang="ts">
@@ -13,13 +17,15 @@
 </script>
 
 <template>
-  <!-- 分区卡片表单：layout="sectioned" -->
+  <!-- 分区卡片底：layout="sectioned" -->
   <FormDialog
     v-model="visible"
     layout="sectioned"
-    title="新增用户"
+    presentation="drawer"
+    title="新建用户"
     subtitle="填写用户的基本信息"
     icon="ant-design:user-add-outlined"
+    :width="560"
     :confirm-loading="saving"
     @confirm="handleSubmit"
   >
@@ -28,5 +34,6 @@
 </template>
 ```
 
-- `layout="sectioned"`：内容区 12px 间距 + 浅色底，配合 `AxisForm` 的 `sections` 分区卡片。
-- 确认事件不会自动关闭弹窗，业务提交成功后再改 `v-model`。
+- `layout="sectioned"`：主体 12px 间距 + 浅色底，配合 `AxisForm` 的 `sections` 分区卡片。
+- `presentation="drawer"` 时 `draggable` 无效；主体默认不限制 maxBodyHeight，可纵向铺满滚动。
+- 确定事件不会自动关闭对话框，业务提交成功后再改 `v-model`。

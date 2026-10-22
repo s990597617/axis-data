@@ -43,6 +43,12 @@ export interface AxisCrudFormSection {
   fields: AxisCrudField[]
 }
 
+/** 分步向导步骤；key 须对应 formSections[].key。 */
+export interface AxisCrudFormStep {
+  key: string
+  title: string
+}
+
 // 通用维护页资源描述：各业务模块只声明配置，不实现表格壳
 export interface AxisCrudResource<Row extends AxisCrudRow = AxisCrudRow> {
   title: string
@@ -68,6 +74,14 @@ export interface AxisCrudResource<Row extends AxisCrudRow = AxisCrudRow> {
     | ((context: { editing: boolean; model: Record<string, unknown> }) => string | undefined)
   /** 新增/编辑弹窗宽度；默认 760。 */
   formWidth?: number | string
+  /** 表单呈现：modal（默认）或 drawer。 */
+  formPresentation?: 'modal' | 'drawer'
+  /**
+   * 分步向导：有值时同一时间只展示与当前步骤 key 匹配的分区。
+   * 底部改为 取消 / 上一步 / 下一步 / 保存；下一步会尽量校验当前步字段。
+   * 最终保存时再做整表校验（仅当前可见分区在 DOM 中；前序步已在「下一步」时校验过）。
+   */
+  formSteps?: AxisCrudFormStep[]
   /** `#before` 插槽位置；`aside` 时预览等面板在表单左侧。 */
   formBeforePlacement?: 'block' | 'aside'
   /** 操作列宽度、行内展示数等；默认 width 130、maxInline 1（多余进更多）。 */
