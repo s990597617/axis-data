@@ -9,20 +9,6 @@ namespace Axis.Domain.System;
 /// </remarks>
 public static class CodeRuleCodes
 {
-    /// <summary>
-    /// 物料编码规则。
-    /// </summary>
-    public const string Material = "MAT";
-
-    /// <summary>
-    /// 工序编码规则。
-    /// </summary>
-    public const string Process = "PRC";
-
-    /// <summary>
-    /// 工艺路线编码规则。
-    /// </summary>
-    public const string Routing = "RTG";
 
     /// <summary>
     /// 生产工单号规则。

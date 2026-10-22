@@ -29,10 +29,38 @@ import { tryRequest } from '@/shared/http'
 import { message } from '@/shared/utils/message'
 
 const sourceTypeOptions: AxisFormOption[] = [
-  { label: 'PostgreSQL', value: 2 },
-  { label: 'MySQL', value: 3 },
-  { label: 'SQL Server', value: 1 },
-  { label: 'HTTP API', value: 4 }
+  {
+    label: 'PostgreSQL',
+    value: 2,
+    icon: 'ant-design:database-outlined',
+    description: '常用关系库，推荐默认',
+    tone: 'pg',
+    className: 'dh-source-type--pg'
+  },
+  {
+    label: 'MySQL',
+    value: 3,
+    icon: 'ant-design:cloud-server-outlined',
+    description: '兼容 MariaDB',
+    tone: 'mysql',
+    className: 'dh-source-type--mysql'
+  },
+  {
+    label: 'SQL Server',
+    value: 1,
+    icon: 'ant-design:console-sql-outlined',
+    description: '微软关系库',
+    tone: 'mssql',
+    className: 'dh-source-type--mssql'
+  },
+  {
+    label: 'HTTP API',
+    value: 4,
+    icon: 'ant-design:api-outlined',
+    description: '外部接口接入',
+    tone: 'http',
+    className: 'dh-source-type--http'
+  }
 ]
 
 const sourceTypeDict: AxisFormOption[] = [
@@ -43,14 +71,39 @@ const sourceTypeDict: AxisFormOption[] = [
 ]
 
 const secretKindOptions: AxisFormOption[] = [
-  { label: '应用配置', value: 'config' },
-  { label: '环境变量', value: 'env' },
-  { label: '暂不配置', value: 'none' }
+  {
+    label: '应用配置',
+    value: 'config',
+    icon: 'ant-design:setting-outlined',
+    description: '读服务器配置键'
+  },
+  {
+    label: '环境变量',
+    value: 'env',
+    icon: 'ant-design:code-outlined',
+    description: '读进程环境变量'
+  },
+  {
+    label: '暂不配置',
+    value: 'none',
+    icon: 'ant-design:stop-outlined',
+    description: '稍后再补密钥'
+  }
 ]
 
 const connectionModeOptions: AxisFormOption[] = [
-  { label: '密钥引用（推荐）', value: 'secret' },
-  { label: '结构化连接串', value: 'inline' }
+  {
+    label: '密钥引用',
+    value: 'secret',
+    icon: 'ant-design:key-outlined',
+    description: '推荐，连接串放服务端'
+  },
+  {
+    label: '结构化连接',
+    value: 'inline',
+    icon: 'ant-design:form-outlined',
+    description: '临时填写主机等信息'
+  }
 ]
 
 const lastTestStatusOptions: AxisFormOption[] = [
@@ -286,7 +339,7 @@ export function useSourcePage() {
     permissions: dataHubPermissionCodes.source,
     columns,
     formPresentation: 'drawer',
-    formWidth: 760,
+    formWidth: 920,
     formExtraClass: 'dh-source-form-drawer',
     formSubtitle: ({ editing, model }) =>
       editing
@@ -329,6 +382,7 @@ export function useSourcePage() {
             defaultValue: 2,
             help: '关系库可拉表/字段元数据；HTTP 请在数据集中用「查询」+ SQL。',
             componentProps: ((ctx: AxisFormFieldContext) => ({
+              class: 'dh-source-type-group',
               onUpdateValue: (value: number) => {
                 if (isDbType(value)) {
                   ctx.model.port = defaultPort(value)
@@ -353,7 +407,8 @@ export function useSourcePage() {
             required: true,
             defaultValue: 'secret',
             fullWidth: true,
-            help: '密钥引用：真实连接串写在服务器配置，这里只选配置键。'
+            help: '密钥引用：真实连接串写在服务器配置，这里只选配置键。',
+            componentProps: { class: 'dh-source-choice-group' }
           },
           {
             field: 'secretKind',
@@ -363,7 +418,8 @@ export function useSourcePage() {
             required: true,
             defaultValue: 'config',
             fullWidth: true,
-            ifShow: model => model.connectionMode === 'secret'
+            ifShow: model => model.connectionMode === 'secret',
+            componentProps: { class: 'dh-source-choice-group' }
           },
           {
             field: 'secretConfigKey',

@@ -3,7 +3,7 @@ using Axis.Domain.Enums;
 namespace Axis.Domain.System.Seeds;
 
 /// <summary>
-/// 内置编码规则种子：物料 / 工序 / 工艺路线 / 工单 / 报工 / 检验。
+/// 内置编码规则种子：工单 / 报工 / 检验。
 /// </summary>
 /// <remarks>
 /// 编码与 <see cref="CodeRuleCodes"/> 对齐；模板可在管理端调整，编码不可改。
@@ -16,41 +16,6 @@ public sealed class SysCodeRuleSeed : ISqlSugarEntitySeedData<SysCodeRule>
     /// <returns>内置编码规则集合。</returns>
     public IEnumerable<SysCodeRule> HasData()
     {
-        yield return Rule(
-            SysSeedIds.CodeRuleMat,
-            CodeRuleCodes.Material,
-            "物料编码",
-            "M",
-            null,
-            5,
-            CodeResetCycleEnum.Never,
-            "{Prefix}{Serial}",
-            @"^M\d{5}$",
-            10);
-
-        yield return Rule(
-            SysSeedIds.CodeRulePrc,
-            CodeRuleCodes.Process,
-            "工序编码",
-            "P",
-            null,
-            5,
-            CodeResetCycleEnum.Never,
-            "{Prefix}{Serial}",
-            @"^P\d{5}$",
-            15);
-
-        yield return Rule(
-            SysSeedIds.CodeRuleRtg,
-            CodeRuleCodes.Routing,
-            "工艺路线编码",
-            "R",
-            null,
-            5,
-            CodeResetCycleEnum.Never,
-            "{Prefix}{Serial}",
-            @"^R\d{5}$",
-            16);
 
         yield return Rule(
             SysSeedIds.CodeRuleWo,

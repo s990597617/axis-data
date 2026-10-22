@@ -47,6 +47,8 @@ export interface AxisCrudFormSection {
 export interface AxisCrudFormStep {
   key: string
   title: string
+  /** 步骤内容区小标题图标；缺省时回退到对应 formSections[].icon */
+  icon?: string
 }
 
 // 通用维护页资源描述：各业务模块只声明配置，不实现表格壳

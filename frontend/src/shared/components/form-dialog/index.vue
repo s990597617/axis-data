@@ -386,7 +386,8 @@
       flex: 1;
       flex-direction: column;
       min-height: 0;
-      padding: 16px 20px 20px;
+      /* 与页面 layout-content__body、detail-drawer 外层一致：8px */
+      padding: 8px;
     }
 
     .form-dialog__header {
@@ -394,7 +395,7 @@
     }
 
     &.form-dialog--sectioned .form-dialog__body {
-      padding: 16px 20px 24px;
+      padding: 8px;
       background: color-mix(in srgb, var(--axis-card-color) 36%, var(--axis-bg-color));
     }
   }

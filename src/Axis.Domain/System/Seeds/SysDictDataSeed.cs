@@ -46,18 +46,6 @@ public sealed class SysDictDataSeed : ISqlSugarEntitySeedData<SysDictData>
         // ===== code_source_type（与 CodeSourceTypeEnum 双轨） =====
         yield return Data(SysSeedIds.DictDataSourceSelf, SysSeedIds.DictTypeCodeSourceType, "本厂生成", "1", "success", 1, true);
         yield return Data(SysSeedIds.DictDataSourceExternal, SysSeedIds.DictTypeCodeSourceType, "外部传入", "2", "warning", 2);
-
-        // ===== mdm_material_unit（物料计量单位，运营可增项） =====
-        yield return Data(SysSeedIds.DictDataUnitPcs, SysSeedIds.DictTypeMaterialUnit, "件", "PCS", "primary", 1, true);
-        yield return Data(SysSeedIds.DictDataUnitKg, SysSeedIds.DictTypeMaterialUnit, "千克", "KG", "success", 2);
-        yield return Data(SysSeedIds.DictDataUnitM, SysSeedIds.DictTypeMaterialUnit, "米", "M", "info", 3);
-        yield return Data(SysSeedIds.DictDataUnitSet, SysSeedIds.DictTypeMaterialUnit, "套", "SET", "warning", 4);
-        yield return Data(SysSeedIds.DictDataUnitL, SysSeedIds.DictTypeMaterialUnit, "升", "L", "default", 5);
-
-        // ===== mdm_material_source（物料来源，勿与 code_source_type 混淆） =====
-        yield return Data(SysSeedIds.DictDataMaterialSourceBuy, SysSeedIds.DictTypeMaterialSource, "外购", "Buy", "primary", 1, true);
-        yield return Data(SysSeedIds.DictDataMaterialSourceMake, SysSeedIds.DictTypeMaterialSource, "自制", "Make", "success", 2);
-        yield return Data(SysSeedIds.DictDataMaterialSourceOutsource, SysSeedIds.DictTypeMaterialSource, "委外", "Outsource", "warning", 3);
     }
 
     private static SysDictData Data(long id, long typeId, string label, string value, string tag, int order, bool isDefault = false)

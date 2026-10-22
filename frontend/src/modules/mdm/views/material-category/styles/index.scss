@@ -1,8 +1,0 @@
-/* 单根容器：CRUD 树表占满主内容区，表体内部滚动 */
-.material-category-page {
-  display: flex;
-  height: 100%;
-  min-height: 0;
-  overflow: hidden;
-  flex-direction: column;
-}

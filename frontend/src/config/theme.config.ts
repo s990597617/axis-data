@@ -31,11 +31,17 @@ export interface PresetColor {
 export const presetPrimaryColors: readonly PresetColor[] = [
   { label: '山岚绿', value: '#3AA675' },
   { label: '海潮蓝', value: '#2080f0' },
-  { label: '活力橙', value: '#f0a020' },
-  { label: '玫瑰红', value: '#d03050' },
-  { label: '紫罗兰', value: '#7e57c2' },
+  { label: '苍穹蓝', value: '#0B4F9D' },
+  { label: '晴空蓝', value: '#1677ff' },
+  { label: '青碧', value: '#13c2c2' },
   { label: '沉稳青', value: '#0ca678' },
   { label: '深邃靛', value: '#4f46e5' },
+  { label: '紫罗兰', value: '#7e57c2' },
+  { label: '品红', value: '#eb2f96' },
+  { label: '玫瑰红', value: '#d03050' },
+  { label: '日暮橙', value: '#fa8c16' },
+  { label: '活力橙', value: '#f0a020' },
+  { label: '赤陶', value: '#c2410c' },
   { label: '墨石黑', value: '#1f2937' }
 ] as const
 

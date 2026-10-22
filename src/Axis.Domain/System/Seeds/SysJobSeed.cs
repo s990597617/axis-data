@@ -4,7 +4,7 @@ using Axis.Infrastructure.Components.Database;
 namespace Axis.Domain.System.Seeds;
 
 /// <summary>
-/// 定时任务种子（内置 Demo 心跳与刷新令牌清理）。
+/// 定时任务种子（内置刷新令牌清理）。
 /// </summary>
 /// <remarks>
 /// 任务编码常量供 <c>IAxisJob.Code</c> 引用。行数据作为空库/CodeFirst 兜底；
@@ -13,10 +13,6 @@ namespace Axis.Domain.System.Seeds;
 /// </remarks>
 public sealed class SysJobSeed : ISqlSugarEntitySeedData<SysJob>
 {
-    /// <summary>
-    /// Demo 心跳任务编码（与 IAxisJob 实现对齐）。
-    /// </summary>
-    public const string HeartbeatJobCode = "demo:heartbeat";
 
     /// <summary>
     /// 刷新令牌清理任务编码（与 IAxisJob 实现对齐）。
@@ -25,23 +21,6 @@ public sealed class SysJobSeed : ISqlSugarEntitySeedData<SysJob>
 
     public IEnumerable<SysJob> HasData()
     {
-        yield return new SysJob
-        {
-            Id = SysSeedIds.JobHeartbeat,
-            JobCode = HeartbeatJobCode,
-            Name = "Demo 心跳",
-            GroupName = "demo",
-            Cron = "0 */5 * * * ?",
-            Concurrent = false,
-            Params = null,
-            IsBuiltin = true,
-            OrderNo = 1,
-            Status = StatusEnum.Disable,
-            Remark = "验证调度链路的示例任务，默认停用",
-            CreatedBy = SysSeedIds.SeedCreatorId,
-            Creator = SysSeedIds.SeedCreator,
-            CreatedTime = SysSeedIds.SeedCreatedTime
-        };
 
         yield return new SysJob
         {

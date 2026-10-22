@@ -195,7 +195,6 @@ internal static class SysSeedIds
     public const long ButtonInboxReadAll = 1000_0006_0000_11213L;
 
     /// <summary>定时任务种子固定编号。</summary>
-    public const long JobHeartbeat = 1000_0011_0000_00001L;
     public const long JobCleanupRefreshToken = 1000_0011_0000_00002L;
 
     /// <summary>字典类型种子固定编号。</summary>
@@ -207,8 +206,6 @@ internal static class SysSeedIds
     public const long DictTypeCodeResetCycle = 1000_0007_0000_00006L;
     public const long DictTypeCodeCheckAlgo = 1000_0007_0000_00007L;
     public const long DictTypeCodeSourceType = 1000_0007_0000_00008L;
-    public const long DictTypeMaterialUnit = 1000_0007_0000_00009L;
-    public const long DictTypeMaterialSource = 1000_0007_0000_00010L;
 
     /// <summary>字典数据种子固定编号。</summary>
     // common_status 字典项
@@ -238,22 +235,11 @@ internal static class SysSeedIds
     public const long DictDataCheckMod10 = 1000_0008_0007_00002L;
     public const long DictDataSourceSelf = 1000_0008_0008_00001L;
     public const long DictDataSourceExternal = 1000_0008_0008_00002L;
-    public const long DictDataUnitPcs = 1000_0008_0009_00001L;
-    public const long DictDataUnitKg = 1000_0008_0009_00002L;
-    public const long DictDataUnitM = 1000_0008_0009_00003L;
-    public const long DictDataUnitSet = 1000_0008_0009_00004L;
-    public const long DictDataUnitL = 1000_0008_0009_00005L;
-    public const long DictDataMaterialSourceBuy = 1000_0008_0010_00001L;
-    public const long DictDataMaterialSourceMake = 1000_0008_0010_00002L;
-    public const long DictDataMaterialSourceOutsource = 1000_0008_0010_00003L;
 
     /// <summary>编码规则种子固定编号。</summary>
-    public const long CodeRuleMat = 1000_0012_0000_00001L;
     public const long CodeRuleWo = 1000_0012_0000_00002L;
     public const long CodeRuleRpt = 1000_0012_0000_00003L;
     public const long CodeRuleIqc = 1000_0012_0000_00004L;
-    public const long CodeRulePrc = 1000_0012_0000_00005L;
-    public const long CodeRuleRtg = 1000_0012_0000_00006L;
 
     /// <summary>用户角色关联种子固定编号。</summary>
     public const long UserRoleAdmin = 1000_0009_0000_00001L;

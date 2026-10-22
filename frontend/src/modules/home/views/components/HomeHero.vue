@@ -42,8 +42,8 @@
       <div class="home-hero__brand-lockup">
         <span class="home-hero__brand-mark">AX</span>
         <span class="home-hero__brand-copy">
-          <strong>AXIS MES</strong>
-          <small>云枢制造执行</small>
+          <strong>AXIS 数据中台</strong>
+          <small>云枢数据中台</small>
         </span>
       </div>
       <span class="home-hero__date">

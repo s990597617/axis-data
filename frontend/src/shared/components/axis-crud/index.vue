@@ -64,6 +64,13 @@
     () => !hasWizard.value || wizardStepIndex.value >= formSteps.value.length - 1
   )
   const wizardCurrentStep = computed(() => formSteps.value[wizardStepIndex.value])
+  const wizardPanelSection = computed(() =>
+    (props.resource.formSections ?? []).find(section => section.key === wizardCurrentStep.value?.key)
+  )
+  const wizardPanelIcon = computed(
+    () => wizardCurrentStep.value?.icon || wizardPanelSection.value?.icon
+  )
+  const wizardPanelDescription = computed(() => wizardPanelSection.value?.description)
 
   // 叶子不留空 children，避免 Naive 误显示展开箭头
   function pruneEmptyChildren(rows: AxisCrudRow[]): AxisCrudRow[] {
@@ -405,7 +412,11 @@
     >
       <div v-if="hasWizard" class="axis-crud-wizard" :class="{ 'axis-crud-wizard--split': isDrawerWizard }">
         <aside v-if="isDrawerWizard" class="axis-crud-wizard__rail">
-          <div class="axis-crud-wizard__rail-title">配置步骤</div>
+          <div class="axis-crud-wizard__rail-title">
+            <span class="axis-crud-wizard__rail-bar" />
+            <Icon icon="ant-design:partition-outlined" class="axis-crud-wizard__rail-icon" />
+            <span>配置步骤</span>
+          </div>
           <n-steps class="axis-crud-wizard__steps" vertical size="small" :current="wizardStepIndex + 1">
             <n-step
               v-for="(step, index) in formSteps"
@@ -427,10 +438,18 @@
         </div>
         <div class="axis-crud-wizard__panel">
           <div class="axis-crud-wizard__panel-head">
-            <div class="axis-crud-wizard__panel-kicker">
-              步骤 {{ wizardStepIndex + 1 }} / {{ formSteps.length }}
+            <span class="axis-crud-wizard__panel-bar" />
+            <Icon
+              v-if="wizardPanelIcon"
+              :icon="wizardPanelIcon"
+              class="axis-crud-wizard__panel-icon"
+            />
+            <div class="axis-crud-wizard__panel-copy">
+              <div class="axis-crud-wizard__panel-title">{{ wizardCurrentStep?.title }}</div>
+              <div v-if="wizardPanelDescription" class="axis-crud-wizard__panel-desc">
+                {{ wizardPanelDescription }}
+              </div>
             </div>
-            <div class="axis-crud-wizard__panel-title">{{ wizardCurrentStep?.title }}</div>
           </div>
           <AxisForm
             ref="formRef"
@@ -499,25 +518,46 @@
   .axis-crud-wizard {
     &--split {
       display: flex;
-      gap: 20px;
+      gap: 8px;
       align-items: stretch;
       min-height: min(70vh, 640px);
     }
 
     &__rail {
-      flex: 0 0 152px;
-      padding: 16px 14px;
+      flex: 0 0 168px;
+      padding: 14px 12px;
       border: 1px solid color-mix(in srgb, var(--axis-border-color) 75%, transparent);
       border-radius: 10px;
       background: var(--axis-card-color);
     }
 
     &__rail-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
       margin-bottom: 14px;
-      color: var(--axis-text-color-3);
-      font-size: 12px;
+      color: var(--axis-text-color-1);
+      font-size: 14px;
       font-weight: 600;
-      letter-spacing: 0.04em;
+      line-height: 22px;
+    }
+
+    &__rail-bar {
+      width: 3px;
+      height: 14px;
+      flex: 0 0 auto;
+      border-radius: 999px;
+      background: linear-gradient(
+        180deg,
+        var(--axis-primary-color),
+        color-mix(in srgb, var(--axis-primary-color) 45%, transparent)
+      );
+    }
+
+    &__rail-icon {
+      flex: 0 0 auto;
+      color: var(--axis-primary-color);
+      font-size: 15px;
     }
 
     &__top {
@@ -531,30 +571,59 @@
     &__panel {
       flex: 1;
       min-width: 0;
-      padding: 18px 20px 20px;
+      padding: 14px 16px 16px;
       border: 1px solid color-mix(in srgb, var(--axis-border-color) 75%, transparent);
       border-radius: 10px;
       background: var(--axis-card-color);
     }
 
     &__panel-head {
-      margin-bottom: 18px;
-      padding-bottom: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 14px;
+      padding-bottom: 12px;
       border-bottom: 1px dashed color-mix(in srgb, var(--axis-border-color) 85%, transparent);
     }
 
-    &__panel-kicker {
-      color: var(--axis-text-color-3);
-      font-size: 12px;
-      line-height: 18px;
+    &__panel-bar {
+      width: 3px;
+      height: 14px;
+      flex: 0 0 auto;
+      margin-top: 4px;
+      border-radius: 999px;
+      background: linear-gradient(
+        180deg,
+        var(--axis-primary-color),
+        color-mix(in srgb, var(--axis-primary-color) 45%, transparent)
+      );
+    }
+
+    &__panel-icon {
+      flex: 0 0 auto;
+      margin-top: 3px;
+      color: var(--axis-primary-color);
+      font-size: 15px;
+    }
+
+    &__panel-copy {
+      min-width: 0;
     }
 
     &__panel-title {
-      margin-top: 4px;
+      margin: 0;
       color: var(--axis-text-color-1);
-      font-size: 16px;
+      font-size: 14px;
       font-weight: 600;
-      letter-spacing: 0.01em;
+      line-height: 22px;
+    }
+
+    &__panel-desc {
+      margin-top: 2px;
+      color: var(--axis-text-color-3);
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 18px;
     }
 
     &__steps {

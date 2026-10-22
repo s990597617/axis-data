@@ -16,6 +16,8 @@
     type TreeSelectOption
   } from 'naive-ui'
 
+  import { Icon } from '@/shared/icons'
+
   import type {
     AxisFormFieldContext,
     AxisFormModel,
@@ -212,8 +214,23 @@
             :key="String(optionValue(option))"
             :value="optionValue(option)"
             :disabled="disabled || option.disabled"
+            :class="option.className ? String(option.className) : undefined"
           >
-            {{ optionLabel(option) }}
+            <span
+              class="axis-form-radio-option"
+              :data-tone="option.tone ? String(option.tone) : undefined"
+            >
+              <span v-if="option.icon" class="axis-form-radio-option__badge">
+                <Icon :icon="String(option.icon)" class="axis-form-radio-option__icon" />
+              </span>
+              <span class="axis-form-radio-option__text">
+                <span class="axis-form-radio-option__label">{{ optionLabel(option) }}</span>
+                <span
+                  v-if="option.description"
+                  class="axis-form-radio-option__desc"
+                >{{ String(option.description) }}</span>
+              </span>
+            </span>
           </n-radio>
         </n-space>
       </n-radio-group>
@@ -263,6 +280,51 @@
       align-items: center;
       color: var(--axis-text-color-3);
       font-size: 13px;
+    }
+  }
+
+
+  .axis-form-radio-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    vertical-align: middle;
+
+    &__badge {
+      display: inline-flex;
+      flex-shrink: 0;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      color: var(--axis-primary-color);
+      background: color-mix(in srgb, var(--axis-primary-color) 12%, transparent);
+    }
+
+    &__icon {
+      font-size: 18px;
+    }
+
+    &__text {
+      display: flex;
+      min-width: 0;
+      flex-direction: column;
+      gap: 2px;
+      line-height: 1.25;
+    }
+
+    &__label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--axis-text-color-1);
+    }
+
+    &__desc {
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--axis-text-color-3);
     }
   }
 </style>

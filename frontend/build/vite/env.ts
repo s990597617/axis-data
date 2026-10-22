@@ -57,7 +57,7 @@ export function resolveViteEnv(configEnv: ConfigEnv): ViteAppEnv {
     mode: configEnv.mode,
     isBuild: configEnv.command === 'build',
     isProd: configEnv.mode === 'production',
-    appTitle: rawEnv.VITE_APP_TITLE || '云枢 Axis · MES',
+    appTitle: rawEnv.VITE_APP_TITLE || '云枢 Axis · 数据中台',
     publicPath: normalizePublicPath(rawEnv.VITE_PUBLIC_PATH),
     port: parsePort(rawEnv.VITE_PORT),
     apiPrefix: rawEnv.VITE_API_PREFIX || '/api',

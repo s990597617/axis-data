@@ -3,51 +3,152 @@
 }
 
 .dh-source-form-drawer {
-  .axis-crud-wizard__panel .n-radio-group {
+  /* 仅「选择类型」用大卡片；其它 radio 走紧凑选项 */
+  .dh-source-type-group {
     width: 100%;
+
+    > .n-space {
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px !important;
+      width: 100%;
+    }
+
+    .n-radio {
+      display: flex;
+      align-items: center;
+      min-height: 76px;
+      margin: 0 !important;
+      padding: 14px 16px;
+      border: 1px solid color-mix(in srgb, var(--axis-border-color) 85%, transparent);
+      border-radius: 12px;
+      background: var(--axis-card-color);
+      transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease,
+        transform 0.15s ease;
+    }
+
+    .n-radio:hover {
+      border-color: color-mix(in srgb, var(--axis-primary-color) 45%, var(--axis-border-color));
+      transform: translateY(-1px);
+    }
+
+    .n-radio.n-radio--checked,
+    .n-radio.n-radio--focus {
+      border-color: var(--axis-primary-color);
+      background: var(--axis-card-color);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--axis-primary-color) 14%, transparent);
+    }
+
+    .n-radio .n-radio__label {
+      padding-left: 10px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .n-radio .axis-form-radio-option {
+      width: 100%;
+    }
+
+    .n-radio .axis-form-radio-option__badge {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+    }
+
+    .n-radio .axis-form-radio-option__icon {
+      font-size: 20px;
+    }
+
+    .dh-source-type--pg .axis-form-radio-option__badge {
+      color: #336791;
+      background: color-mix(in srgb, #336791 14%, transparent);
+    }
+
+    .dh-source-type--mysql .axis-form-radio-option__badge {
+      color: #00758f;
+      background: color-mix(in srgb, #00758f 14%, transparent);
+    }
+
+    .dh-source-type--mssql .axis-form-radio-option__badge {
+      color: #cc2927;
+      background: color-mix(in srgb, #cc2927 12%, transparent);
+    }
+
+    .dh-source-type--http .axis-form-radio-option__badge {
+      color: #5b5fc7;
+      background: color-mix(in srgb, #5b5fc7 14%, transparent);
+    }
   }
 
-  .axis-crud-wizard__panel .n-radio-group > .n-space {
-    display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px !important;
+  .dh-source-choice-group {
     width: 100%;
+
+    > .n-space {
+      display: flex !important;
+      flex-wrap: wrap;
+      gap: 12px !important;
+      width: 100%;
+    }
+
+    .n-radio {
+      display: inline-flex;
+      align-items: center;
+      flex: 1 1 220px;
+      min-height: 68px;
+      margin: 0 !important;
+      padding: 12px 14px;
+      border: 1px solid color-mix(in srgb, var(--axis-border-color) 88%, transparent);
+      border-radius: 10px;
+      background: var(--axis-card-color);
+      transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease,
+        transform 0.15s ease;
+    }
+
+    .n-radio:hover {
+      border-color: color-mix(in srgb, var(--axis-primary-color) 40%, var(--axis-border-color));
+      transform: translateY(-1px);
+    }
+
+    .n-radio.n-radio--checked,
+    .n-radio.n-radio--focus {
+      border-color: var(--axis-primary-color);
+      background: var(--axis-card-color);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--axis-primary-color) 14%, transparent);
+    }
+
+    .n-radio .n-radio__label {
+      padding-left: 10px;
+    }
+
+    .n-radio .axis-form-radio-option {
+      width: 100%;
+    }
+
+    .axis-form-radio-option__badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+    }
+
+    .axis-form-radio-option__icon {
+      font-size: 18px;
+    }
+
+    .axis-form-radio-option__label {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .axis-form-radio-option__desc {
+      font-size: 12px;
+      line-height: 18px;
+    }
   }
 
-  .axis-crud-wizard__panel .n-radio {
-    display: flex;
-    align-items: center;
-    min-height: 56px;
-    margin: 0 !important;
-    padding: 14px 16px;
-    border: 1px solid color-mix(in srgb, var(--axis-border-color) 85%, transparent);
-    border-radius: 10px;
-    background: color-mix(in srgb, var(--axis-bg-color) 65%, var(--axis-card-color));
-    transition:
-      border-color 0.15s ease,
-      box-shadow 0.15s ease,
-      background 0.15s ease;
-  }
-
-  .axis-crud-wizard__panel .n-radio:hover {
-    border-color: color-mix(in srgb, var(--axis-primary-color) 45%, var(--axis-border-color));
-  }
-
-  .axis-crud-wizard__panel .n-radio.n-radio--checked,
-  .axis-crud-wizard__panel .n-radio.n-radio--focus {
-    border-color: var(--axis-primary-color);
-    background: color-mix(in srgb, var(--axis-primary-color) 8%, var(--axis-card-color));
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--axis-primary-color) 14%, transparent);
-  }
-
-  .axis-crud-wizard__panel .n-radio .n-radio__label {
-    font-size: 14px;
-    font-weight: 600;
-  }
-}
-
-
-.dh-source-form-drawer {
   .axis-crud-wizard__panel {
     .axis-form-section__header,
     .axis-form__section-header {

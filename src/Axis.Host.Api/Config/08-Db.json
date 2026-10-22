@@ -4,7 +4,7 @@
       {
         "ConfigId": "master",
         "DbType": "PostgreSQL",
-        "ConnectionString": "Port=5432;Database=axis_admin_db;Host=192.168.9.166;Password=postgres@123456;UserName=postgres",
+        "ConnectionString": "Port=5432;Database=axis_data_db;Host=192.168.9.166;Password=postgres@123456;UserName=postgres",
         "IsAutoCloseConnection": true,
         "DbSettings": {
           "EnableInitDb": false,

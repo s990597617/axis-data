@@ -37,31 +37,31 @@
         </div>
         <div class="brand-meta">
           <span class="brand-text">{{ appConfig.appName }}</span>
-          <span class="brand-subtext">MANUFACTURING EXECUTION SYSTEM</span>
+          <span class="brand-subtext">DATA MIDDLE PLATFORM</span>
         </div>
       </div>
 
       <div class="banner-center">
         <div class="banner-item">
-          <div class="banner-tag">AXIS MES</div>
+          <div class="banner-tag">AXIS 数据中台</div>
           <h1 class="banner-title">
-            从工单到报工
+            连接数据源
             <br />
-            把现场跑起来
+            治理与采集一体
           </h1>
           <div class="banner-divider" />
           <p class="banner-desc">
-            面向车间现场的制造执行系统。物料档案、工艺路线、工单下达与报工，跑在同一套权限与租户底座上。
+            面向企业数据汇聚与治理的数据中台。数据源接入、数据集管理与采集任务，跑在同一套权限与租户底座上。
           </p>
 
           <div class="banner-features">
             <div class="feature-item">
               <span class="feature-dot" />
-              <span>物料与工艺主数据</span>
+              <span>多源数据接入</span>
             </div>
             <div class="feature-item">
               <span class="feature-dot" />
-              <span>工单下达到报工闭环</span>
+              <span>数据集与采集任务</span>
             </div>
             <div class="feature-item">
               <span class="feature-dot" />
@@ -86,7 +86,7 @@
         <header class="form-header">
           <div class="form-badge">WELCOME BACK</div>
           <h2>欢迎登录 {{ appConfig.appShortName }}</h2>
-          <p>请输入账号，进入制造执行控制台</p>
+          <p>请输入账号，进入数据中台控制台</p>
         </header>
 
         <n-form :model="formModel" size="large" :show-label="false" class="login-form">
